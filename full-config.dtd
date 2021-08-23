@@ -20,7 +20,7 @@
 -->
 
 <!--- Put your DTDDoc comment here. -->
-<!ELEMENT config (classes|master|fwstorage|backup|status|times|phases|queries|environments|nobootdev|nofirmdev|customcerts|stdargs)*>
+<!ELEMENT config (classes|master|fwstorage|backup|status|times|phases|environments|nobootdev|customcerts|queries|nofirmdev|stdargs|filenames)*>
 <!ATTLIST config
     debugmerge CDATA #IMPLIED
     debugcerts CDATA #IMPLIED
@@ -73,13 +73,13 @@
 <!--- Put your DTDDoc comment here. -->
 <!ELEMENT times EMPTY>
 <!ATTLIST times
-    initial CDATA #IMPLIED
+    check CDATA #IMPLIED
     dir CDATA #IMPLIED
     allow CDATA #IMPLIED
-    check CDATA #IMPLIED
+    initial CDATA #IMPLIED
     polling CDATA #IMPLIED
-    forcestaging CDATA #IMPLIED
     interval CDATA #IMPLIED
+    forcestaging CDATA #IMPLIED
     grace CDATA #IMPLIED
     forcehttps CDATA #IMPLIED
     httpsport CDATA #IMPLIED
@@ -120,6 +120,11 @@
 
 <!--- Put your DTDDoc comment here. -->
 <!ELEMENT model (#PCDATA)>
+<!ATTLIST model
+    id CDATA #IMPLIED
+    prot CDATA #IMPLIED
+    boot CDATA #IMPLIED
+  >
 
 <!--- Put your DTDDoc comment here. -->
 <!ELEMENT nobootdev (model)*>
@@ -128,34 +133,37 @@
 <!ELEMENT nofirmdev (model)*>
 
 <!--- Put your DTDDoc comment here. -->
+<!ELEMENT filenames (model)*>
+
+<!--- Put your DTDDoc comment here. -->
 <!ELEMENT customcerts EMPTY>
 <!ATTLIST customcerts
-    CAtype CDATA #IMPLIED
+    CAurl CDATA #IMPLIED
     dir CDATA #IMPLIED
     CAkeys CDATA #IMPLIED
-    CAuser CDATA #IMPLIED
-    renew CDATA #IMPLIED
-    CSRsignature CDATA #IMPLIED
-    CSRdn-st CDATA #IMPLIED
-    CSRsan-dns-3 CDATA #IMPLIED
-    CApassword CDATA #IMPLIED
-    CSRdn-ou CDATA #IMPLIED
-    CAurl CDATA #IMPLIED
-    CSRdn-l CDATA #IMPLIED
-    CSRsan-ip-2 CDATA #IMPLIED
-    network CDATA #IMPLIED
-    CSRdn-o CDATA #IMPLIED
+    CSRkey CDATA #IMPLIED
     auto-sign-off CDATA #IMPLIED
-    CSRsan-dns-1 CDATA #IMPLIED
+    CAtype CDATA #IMPLIED
+    CAuser CDATA #IMPLIED
+    CSRsan-dns-3 CDATA #IMPLIED
+    renew CDATA #IMPLIED
+    CApassword CDATA #IMPLIED
     CAname CDATA #IMPLIED
+    CSRsignature CDATA #IMPLIED
     netmask CDATA #IMPLIED
     CAnamesep CDATA #IMPLIED
+    CSRsan-dns-1 CDATA #IMPLIED
+    CSRdn-o CDATA #IMPLIED
+    CSRdn-ou CDATA #IMPLIED
     CSRsan-ip-1 CDATA #IMPLIED
     CAwildcard CDATA #IMPLIED
-    CSRkey CDATA #IMPLIED
-    CSRsan-dns-2 CDATA #IMPLIED
     CSRdn-c CDATA #IMPLIED
+    CSRdn-st CDATA #IMPLIED
+    CSRsan-ip-2 CDATA #IMPLIED
     CSRdn-cn CDATA #IMPLIED
+    CSRdn-l CDATA #IMPLIED
+    CSRsan-dns-2 CDATA #IMPLIED
+    network CDATA #IMPLIED
   >
 
 <!--- Put your DTDDoc comment here. -->

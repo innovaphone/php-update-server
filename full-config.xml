@@ -84,6 +84,10 @@ DO NOT use for production!
         <model>name1</model>
         <model>name2</model>
     </nofirmdev>
+    
+    <filenames>
+        <model id="id" prot="alternate-fw" boot="alternate-boot"/>
+    </filenames>
         
     <customcerts
         dir="certs"

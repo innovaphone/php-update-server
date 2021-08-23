@@ -238,6 +238,10 @@ Do NOT modify this file!   Put local settings in to user-config.xml rather
         <model>mypbxi</model>
     </nofirmdev>
     
+    <filenames>
+        <model id="mypbxa" prot="mypbx.apk" boot="alt-bootnomodel.bin"/>
+    </filenames>
+    
     <stdargs>
         <stdarg key="sn" value="#m"/>
         <stdarg key="type" value="#t"/>

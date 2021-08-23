@@ -642,6 +642,39 @@ class UpdateServerV2 {
         $spec = str_replace('{model}', $model, $spec);
         $spec = str_replace('{filetype}', $filetype, $spec);
 
+        // derive filenames from $model (which is someting like IP200)
+        $fnroot = $lmodel = strtolower($model);
+        if (($i = strpos($fnroot, "-")) !== false) {
+            $fnroot = substr($fnroot, 0, $i);
+        }
+        if (substr($fnroot, 0, 2) == "ip") {
+            $fnroot = substr($fnroot, 2);
+            $fwprefix = "ip";
+        } else {
+            $fwprefix = "";
+        }
+        switch ($filetype) {
+            case "prot" : $filename = "$fwprefix$fnroot.bin";
+                break;
+            case "boot" : $filename = "boot$fnroot.bin";
+                break;
+            default : $filename = "$lmodel.unknown";
+                break;
+        }
+        // override in config?
+        if (isset($this->xmlconfig->filenames) &&
+                isset($this->xmlconfig->filenames->model)) {
+            foreach ($this->xmlconfig->filenames->model as $model) {
+                if (($thismodel = LessSimpleXMLElement::getAttributeFromXML($model, "id", null)) !== null && $thismodel == $lmodel) {
+                    if (($thisfilename = LessSimpleXMLElement::getAttributeFromXML($model, $filetype, null)) !== null) {
+                        $filename = $thisfilename;
+                        break;
+                    }
+                }
+            };
+        }
+        $spec = str_replace('{filename}', $filename, $spec);
+
         return $spec;
     }
 
