@@ -11,7 +11,14 @@ DO NOT use for production!
     <master 
         info=""
         expire=""
-        cache=""/>
+        cache=""
+        user=""
+        password=""
+        firmware="none"
+        bootcode="none"
+    >
+        <applies env="true">name</applies>
+    </master>
     
     <fwstorage url=""/>
     
@@ -42,6 +49,7 @@ DO NOT use for production!
         httpsport=""
         forcetrust=""
         httpsurlmod=""
+        forcestaging="true"
     />
     
     <phases>

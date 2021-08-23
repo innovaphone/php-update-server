@@ -14,6 +14,8 @@ Do NOT modify this file!   Put local settings in to user-config.xml rather
         cache="cache/master-info.xml"
         user="admin"
         password="password"
+        firmware="master"
+        bootcode="master"
     />
     
     <fwstorage url="fw/{build}/"/>
@@ -201,12 +203,31 @@ Do NOT modify this file!   Put local settings in to user-config.xml rather
             <model>ip6000</model>
             <model>ip6010</model>
         </class>
+        <class id="pbx">
+            <model>ipva</model>
+            <model>ipvadect</model>
+            <model>ip0010</model>
+            <model>ip0011</model>
+            <model>ip2000</model>
+            <model>ip3000</model>
+            <model>ip3010</model>
+            <model>ip3011</model>
+            <model>ip302</model>
+            <model>ip305</model>
+            <model>ip311</model>
+            <model>ip411</model>
+            <model>ip6000</model>
+            <model>ip6010</model>
+            <model>ip800</model>
+            <model>ip810</model>
+            <model>ip811</model>
+        </class>
         
     </classes>
     
     <nobootdev> 
         <model>ipva</model>
-        <model>ipvadec</model>
+        <model>ipvadect</model>
         <model>swphone</model>
         <model>mypbxa</model>
         <model>mypbxi</model>

@@ -436,7 +436,7 @@ if (count($certmsgs))
 doQueries($pi, $classes, $envs);
 
 // see if we have restricted times
-$times = $pi->getTimes();
+$times = $pi->getTimes($nextphase != null);
 if ($times != null) {
     print "\r\n# Restricted times\r\n$times\r\n";
 }
@@ -446,23 +446,69 @@ $reset = false;
 // see if we need to update boot code or firmware
 if (isset($pi->xmlconfig->master) && isset($pi->xmlconfig->master['info']) && $pi->xmlconfig->master['info'] != "") {
 
-    // query pbx fw info
-    if ($pi->cacheIsCurrent()) {
-        print "# firmware build info cache is current\r\n";
-        $info = $pi->getCachedPbxInfo();
-    } else {
-        $info = new SimpleXMLElement("<result><error>cache not current</error></result>");
-    }
-    if (!isset($info->prot)) {
-        print "# failed to use cached data ({$info->error}), retrieving info online\r\n";
-        $info = $pi->getOnlinePbxInfo();
-        if (!isset($info->prot)) {
-            print("# cannot get PBX info: {$info->error}, reading cache\r\n");
+    // see if we need to query the master device
+    $info = null;
+    if ($pi->xmlconfig->master['info'] != "none") {
+        // query pbx fw info
+        if ($pi->cacheIsCurrent()) {
+            print "# firmware build info cache is current\r\n";
             $info = $pi->getCachedPbxInfo();
+        } else {
+            $info = new SimpleXMLElement("<result><error>cache not current</error></result>");
+        }
+        if (!isset($info->prot)) {
+            print "# failed to use cached data ({$info->error}), retrieving info online\r\n";
+            $info = $pi->getOnlinePbxInfo();
             if (!isset($info->prot)) {
-                UpdateServerV2::bailout("cannot get cached PBX info: {$info->error}");
+                print("# cannot get PBX info: {$info->error}, reading cache\r\n");
+                $info = $pi->getCachedPbxInfo();
+                if (!isset($info->prot)) {
+                    UpdateServerV2::bailout("cannot get cached PBX info: {$info->error}");
+                }
             }
         }
+    }
+    // determine firmware and bootcode version
+    if (empty($pi->xmlconfig->master['firmware'])) {
+        $pi->xmlconfig->master['firmware'] = "master";
+    }
+    if (empty($pi->xmlconfig->master['bootcode'])) {
+        $pi->xmlconfig->master['bootcode'] = "master";
+    }
+    $useFirmware = "unknown";
+    $useBootcode = "unknown";
+
+    if ($pi->xmlconfig->master['firmware'] == "master") {
+        if ($info == null)
+            UpdateServerV2::bailout("Cannot use firmware='master' with no info available");
+        $useFirmware = (string) $info->prot;
+        print "# firmware derived from master device\r\n";
+    } else if ($pi->xmlconfig->master['firmware'] == "none") {
+        print "# firmware update disabled\r\n";
+        $useFirmware = null;
+    } else if (is_numeric((string) $pi->xmlconfig->master['firmware'])) {
+        $useFirmware = (string) $pi->xmlconfig->master['firmware'];
+        print "# firmware fixed to $useFirmware\r\n";
+    } else {
+        UpdateServerV2::bailout("Invalid value '{$pi->xmlconfig->master['firmware']}' for firmware attribute in <master> tag");
+    }
+
+    if ($pi->xmlconfig->master['bootcode'] == "master") {
+        if ($info == null)
+            UpdateServerV2::bailout("Cannot use bootcode='master' with no info available");
+        $useBootcode = (string) $info->boot;
+        print "# bootcode derived from master device\r\n";
+    } else if ($pi->xmlconfig->master['bootcode'] == "firmware") {
+        print "# bootcode derived from firmware\r\n";
+        $useBootcode = $useFirmware;
+    } else if ($pi->xmlconfig->master['bootcode'] == "none") {
+        print "# bootcode update disabled\r\n";
+        $useBootcode = null;
+    } else if (is_numeric((string) $pi->xmlconfig->master['bootcode'])) {
+        $useBootcode = (string) $pi->xmlconfig->master['bootcode'];
+        print "# bootcode fixed to $useBootcode\r\n";
+    } else {
+        UpdateServerV2::bailout("Invalid value '{$pi->xmlconfig->master['bootcode']}' for 'bootcode' attribute in <master> tag");
     } {
         $nofirms = $noboots = array();
         if (isset($pi->xmlconfig->nobootdev->model)) {
@@ -470,7 +516,7 @@ if (isset($pi->xmlconfig->master) && isset($pi->xmlconfig->master['info']) && $p
                 $noboots[] = strtolower((string) $dev);
             }
         }
-        
+
         if (isset($pi->xmlconfig->nofirmdev->model)) {
             foreach ($pi->xmlconfig->nofirmdev->model as $dev) {
                 $nofirms[] = strtolower((string) $dev);
@@ -479,31 +525,50 @@ if (isset($pi->xmlconfig->master) && isset($pi->xmlconfig->master['info']) && $p
         print "# nofirm: " . implode(", ", $nofirms) . ". This device type=$type\r\n";
         print "# noboot: " . implode(", ", $noboots) . "\r\n";
 
-        if (!in_array(strtolower($type), $nofirms)) {
-            if (!isset($_REQUEST['PROT']) || ($_REQUEST['PROT'] != (string) $info->prot)) {
-                notify("current firmware (" . (isset($_REQUEST['PROT']) ? $_REQUEST['PROT'] : "unknown") . ") does not match required firmware ({$info->prot})");
-                print "mod cmd UP0 prot " . $pi->getFWStorage((string) $info->prot, $type, "prot") . " ser {$info->prot}\r\n";
-                $pi->logDeviceState("requested", $info->prot, "firmware");
-                $pi->logDeviceState("requested-at", time(), "firmware");
-                $reset = true;
-            } else {
-                print "# firmware {$info->prot} good\r\n";
+        // applies tag that does not match?
+        $excludereason = array();
+        if (isset($pi->xmlconfig->master->applies)) {
+            foreach ($pi->xmlconfig->master->applies as $a) {
+                if (!(
+                        (trim((string) $a) == "*") ||
+                        in_array(
+                                trim((string) $a), (isset($a['env']) ? $envs : $classes)
+                        ))
+                ) {
+                    $excludereason[] = trim((string) $a) . (isset($a['env']) ? " (env)" : " (class)");
+                }
             }
-        } else {
-            print "# no firmware for device of type '$type'\r\n";
         }
-        if (!in_array(strtolower($type), $noboots)) {
-            if (!isset($_REQUEST['BOOT']) || ($_REQUEST['BOOT'] != (string) $info->boot)) {
-                notify("current boot code (" . (isset($_REQUEST['BOOT']) ? $_REQUEST['BOOT'] : "unknown") . ") does not match required boot code ({$info->boot})");
-                print "mod cmd UP0 boot " . $pi->getFWStorage((string) $info->boot, $type, "boot") . " ser {$info->boot}\r\n";
-                $pi->logDeviceState("requested", $info->boot . "bootcode");
-                $pi->logDeviceState("requested-at", time(), "bootcode");
-                $reset = true;
-            } else {
-                print "# boot code {$info->boot} good\r\n";
-            }
+
+        if (count($excludereason)) {
+            print "# no firmware/bootcode update as device does not fit <applies>: " . implode(", ", $excludereason) . "\r\n";
         } else {
-            print "# no bootcode for device of type '$type'\r\n";
+            if (($useFirmware !== null) && !in_array(strtolower($type), $nofirms)) {
+                if (!isset($_REQUEST['PROT']) || ($_REQUEST['PROT'] != (string) $useFirmware)) {
+                    notify("current firmware (" . (isset($_REQUEST['PROT']) ? $_REQUEST['PROT'] : "unknown") . ") does not match required firmware ({$useFirmware})");
+                    print "mod cmd UP0 prot " . $pi->getFWStorage((string) $useFirmware, $type, "prot") . " ser {$useFirmware}\r\n";
+                    $pi->logDeviceState("requested", $useFirmware, "firmware");
+                    $pi->logDeviceState("requested-at", time(), "firmware");
+                    $reset = true;
+                } else {
+                    print "# firmware {$useFirmware} good\r\n";
+                }
+            } else {
+                print "# no firmware update for device of type '$type'\r\n";
+            }
+            if (($useBootcode !== null) && !in_array(strtolower($type), $noboots)) {
+                if (!isset($_REQUEST['BOOT']) || ($_REQUEST['BOOT'] != (string) $useBootcode)) {
+                    notify("current boot code (" . (isset($_REQUEST['BOOT']) ? $_REQUEST['BOOT'] : "unknown") . ") does not match required boot code ({$useBootcode})");
+                    print "mod cmd UP0 boot " . $pi->getFWStorage((string) $useBootcode, $type, "boot") . " ser {$useBootcode}\r\n";
+                    $pi->logDeviceState("requested", $useBootcode . "bootcode");
+                    $pi->logDeviceState("requested-at", time(), "bootcode");
+                    $reset = true;
+                } else {
+                    print "# boot code {$useBootcode} good\r\n";
+                }
+            } else {
+                print "# no bootcode update for device of type '$type'\r\n";
+            }
         }
     }
 }

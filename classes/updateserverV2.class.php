@@ -185,6 +185,8 @@ class UpdateServerV2 {
     var $xmlconfig = null;
     var $xmluserconfig = null;
     var $baseurl;
+    var $lastphase = null;
+    var $fakelastphase = null;
 
     private function mergeConfigs($lcfg = null, $rcfg = null, $level = 0) {
         $levelstring = substr("...........", 0, $level);
@@ -272,6 +274,9 @@ class UpdateServerV2 {
         }
     }
 
+    /**
+     * read and merge XML config
+     */
     private function readConfig() {
         try {
             $this->xmlconfig = @new SimpleXMLElement(file_get_contents(self::defaultConfigFile));
@@ -304,9 +309,11 @@ class UpdateServerV2 {
             file_put_contents("debug/after.xml", $this->xmlconfig->asXML());
 
         $ids = array();
+        $insertPhaseSeq = null;
         if (isset($this->xmlconfig->phases->phase)) {
+            $value = null;
             foreach ($this->xmlconfig->phases->phase as $key => $value) {
-                if ($value['id'] == "all")
+                if (($value['id'] == "all") || ($value['id'] == "_"))
                     self::bailout("config: phase name '{$value['id']}' not allowed");
                 if (strpos($value['id'], "-") !== false)
                     self::bailout("config: phase named '{$value['id']}': no dash allowed in name");
@@ -314,6 +321,25 @@ class UpdateServerV2 {
                     self::bailout("config: phase named '{$value['id']}': duplicate definition");
                 $ids[(string) $value['id']] = 1;
             }
+            // now $value is the last phase
+            if ($value !== null) {
+                $insertPhaseSeq = (int) $value['seq'];
+                $value['seq'] = $insertPhaseSeq + 1;
+                $this->lastphase = (string) $value['id'];
+                $this->fakelastphase = "_first_" . $this->lastphase;
+            }
+        }
+        /*
+         * see if we need to insert a fake phase (duplicate of last phase)
+         * we do this if
+         * - we have time restrictions (times/@allow)
+         * - we force staging (times/@forcestaging)
+         */
+        $doFakePhase = ((trim(LessSimpleXMLElement::getAttributeFromXML($this->xmluserconfig->times, 'allow', "")) != "") &&
+                (LessSimpleXMLElement::getAttributeFromXML($this->xmluserconfig->times, 'forcestaging', "false") == "true"));
+        if ($doFakePhase && ($insertPhaseSeq !== null)) {
+            $fakePhaseXML = "<config><phases><phase id='" . htmlentities($this->fakelastphase) . "' seq='$insertPhaseSeq'/></phases></config>";
+            $this->mergeConfigs($this->xmlconfig, new SimpleXMLElement($fakePhaseXML));
         }
         $ids = array();
         if (isset($this->xmlconfig->environments->environment)) {
@@ -452,6 +478,9 @@ class UpdateServerV2 {
         if (count($this->xmlconfig->classes->class) > 1)
             array_unshift($allclasses, "all");
 
+        //  is it the faked staging final phase?
+        if ($phase == $this->fakelastphase)
+            $phase = $this->lastphase;
         $allphases = array($phase);
         if (count($this->xmlconfig->phases->phase) > 1)
             array_unshift($allphases, "all");
@@ -628,16 +657,18 @@ class UpdateServerV2 {
         return rawurlencode($value);
     }
 
-    public function getTimes() {
+    public function getTimes($staging = false) {
         if (!isset($this->xmlconfig->times) ||
                 (!isset($this->xmlconfig->times['allow']) && !isset($this->xmlconfig->times['initial'])))
             return null;
-        $times = "mod cmd UP1 times ";
-        if (isset($this->xmlconfig->times['allow']))
-            $times .= " /allow {$this->xmlconfig->times['allow']}";
+        $times = "";
+        if (!($staging && isset($this->xmlconfig->times['forcestaging']) && ($this->xmlconfig->times['forcestaging'] == "true"))) {
+            if (isset($this->xmlconfig->times['allow']))
+                $times .= " /allow {$this->xmlconfig->times['allow']}";
+        }
         if (isset($this->xmlconfig->times['initial']))
             $times .= " /initial {$this->xmlconfig->times['initial']}";
-        return $times;
+        return $times == "" ? null : "mod cmd UP1 times $times";
     }
 
     public function getFilesSignature($files) {
@@ -1283,7 +1314,8 @@ class UpdateServerV2 {
         foreach ($this->xmlconfig->classes->class as $key => $value) {
             $cc = "";
             $models = array();
-            foreach ($value->model as $model) $models[] = strtolower ($model);
+            foreach ($value->model as $model)
+                $models[] = strtolower($model);
             $list = implode(", ", $models);
             $c .= $this->_showSimpleElement($key, $value, $this->_showSPAN("model", "subtag", $list));
         }
@@ -1659,9 +1691,23 @@ class UpdateServerV2 {
         $now = time();
         $withQueries = $this->_countShowQueries() > 0;
         $withCertificates = isset($this->xmlconfig->customcerts);
+        $hint = htmlentities('You can filter by ip-address, serial number, type, name, phase, class, environment, missing, firmware and bootcode');
+        /*
+          . "data-match-realip='{$realip}' "
+          . "data-match-ip='{$ip}' "
+          . "data-match-sn='{$d->device['sn']}' "
+          . "data-match-type='{$d->device['type']}' "
+          . "data-match-name='{$escapedName}' "
+          . "data-match-phase='{$d->device['phase']}' "
+          . "data-match-class='{$d->device['classes']}' "
+          . "data-match-environment='{$d->device['environments']}' "
+          . "data-match-class='$xclass' "
+          . "data-match-firmware='{$d->firmware['build']}'"
+          . "data-match-bootcode='{$d->firmware['bootcode']}'"
+         */
         if ($f == null) {
             return "<tr>"
-                    . "<th>Device</th>"
+                    . "<th>Device <input title='$hint' id='devicesmatch' type='search' onfocusout='noSubmit(); return false;'onchange='updateTableMatcher(this, \"devices\", \"devfiltered\"); return false;' placeholder='device filter' data-no-submit='true'/></th>"
                     . "<th>Last Seen</th>"
                     . $this->_showBackups()
                     . "<th>Firmware<br>"
@@ -1674,7 +1720,7 @@ class UpdateServerV2 {
         try {
             $d = @new SimpleXMLElement($f, 0, true);
         } catch (Exception $e) {
-            $d = new SimpleXMLElement('<state/>');
+            $d = new SimpleXMLElement('<state><device/></state>');
             $d->device['sn'] = "$f -- cannot read state";
             $d['seen'] = time();
         }
@@ -1705,9 +1751,23 @@ class UpdateServerV2 {
         $errortagname = "request-error";
 
         // if (isset($d->queries->certificates->info->$errortagname)) print(htmlspecialchars ($d->queries->certificates->info->$errortagname->asXML()));
-        $scheme = LessSimpleXMLElement::getAttributeFromXML($d->device->status, "usehttpsdevlinks", "true") ? "https" : "http";
+        $scheme = isset($d->device->status) ?
+                (LessSimpleXMLElement::getAttributeFromXML($d->device->status, "usehttpsdevlinks", "true") ? "https" : "http") : "http";
         $target = $d->device['sn'];
-        return "<tr$xclass id='$id'  data-sn='{$d->device['sn']}' data-msgsid='$msgsid' data-backupsid='$backupsid' data-scriptsid='$scriptsid'>"
+        $escapedName = htmlentities($d->queries->admin->info['name']);
+        return "<tr$xclass id='$id' "
+                . "data-match-realip='{$realip}' "
+                . "data-match-ip='{$ip}' "
+                . "data-match-sn='{$d->device['sn']}' "
+                . "data-match-type='{$d->device['type']}' "
+                . "data-match-name='{$escapedName}' "
+                . "data-match-phase='{$d->device['phase']}' "
+                . "data-match-class='{$d->device['classes']}' "
+                . "data-match-environment='{$d->device['environments']}' "
+                . "data-match-missing='" . ($xclass == "" ? "present" : "missing") . "' "
+                . "data-match-firmware='{$d->firmware['build']}'"
+                . "data-match-bootcode='{$d->firmware['bootcode']}'"
+                . "data-sn='{$d->device['sn']}' data-msgsid='$msgsid' data-backupsid='$backupsid' data-scriptsid='$scriptsid'>"
                 . "<td>$handles"
                 . (string) $d->device['sn'] . "<br>"
                 . "<a href='$scheme://$realip' title='Open Device Web GUI' target='$target'>$realip</a>" . "$via<br>"
@@ -1734,13 +1794,13 @@ class UpdateServerV2 {
 
     public function _showDevices() {
         $ndevices = 0;
-        $html = '<table><thead>' . $this->_showDevice() . "</thead>";
+        $html = '<table id="devices"><thead>' . $this->_showDevice() . "</thead>";
         $html .= "<tbody id='devicestable'>";
         foreach (glob("{$this->statedir}/*.xml") as $f) {
             $html .= $this->_showDevice($f);
             $ndevices++;
         }
-        return $html . '</tbody></table>' . "<p/><hr/><div>$ndevices Devices</div>";
+        return $html . '</tbody></table>' . "<p/><hr/><div>$ndevices Devices <span id='devfiltered'/></div>";
     }
 
     public function status() {

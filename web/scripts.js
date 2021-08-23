@@ -9,11 +9,15 @@ function toggleVisibility(id) {
 }
 
 function setVisibility(id, state) {
+    if (id == "")
+        return;
     var el = document.getElementById(id);
     el.style.display = state;
 }
 
-function getVisibility(id, state) {
+function getVisibility(id) {
+    if (id == "")
+        return "";
     var el = document.getElementById(id);
     if (el)
         return el.style.display;
@@ -78,6 +82,7 @@ function deleteFile(sn, id, fn) {
 }
 
 function updateDeviceStatus(sn, id) {
+    // console.log("updateDeviceStatus(" + sn + ", " + id + ")");
     var el = document.getElementById(id);
     if (el && el.parentNode) {
 
@@ -91,6 +96,7 @@ function updateDeviceStatus(sn, id) {
                     var msgsid = el.getAttribute("data-msgsid");
                     var backupsid = el.getAttribute("data-backupsid");
                     var scriptsid = el.getAttribute("data-scriptsid");
+                    // console.log("id(" + id + "): msg=" + msgsid + ", backup=" + backupsid + ", script=" + scriptsid);
                     var msgsstate = getVisibility(msgsid);
                     var backupsstate = getVisibility(backupsid);
                     var scriptsstate = getVisibility(scriptsid);
@@ -98,6 +104,7 @@ function updateDeviceStatus(sn, id) {
                     setVisibility(msgsid, msgsstate);
                     setVisibility(backupsid, backupsstate);
                     setVisibility(scriptsid, scriptsstate);
+                    asyncTableMatcher(id);
                 }
             }
         });
@@ -111,9 +118,15 @@ function initDeviceStateTimer(interval) {
     updateDeviceStatusTable();
 }
 
+function asyncTableMatcher(id) {
+    field = document.getElementById("devicesmatch");
+    tablematcher(field, "devices", "devfiltered", id);
+}
+
 function updateDeviceStatusTable() {
     var el = document.getElementById("devicestable");
     if (el) {
+        console.log("async table update");
         var nodes = el.childNodes;
         for (var i = 0; i < nodes.length; i++) {
             var node = nodes[i];
@@ -123,4 +136,106 @@ function updateDeviceStatusTable() {
             }
         }
     }
+}
+
+var ignoreFormSubmit = false;
+function checkFormSubmittal(form, event) {
+    if (ignoreFormSubmit) {
+        ignoreFormSubmit = false;
+        return false;
+    }
+    return true;
+}
+function updateTableMatcher(field, tableid, displayid) {
+    tablematcher(field, tableid, displayid, null);
+    ignoreFormSubmit = true;
+    return false;
+}
+
+function getFilterList(values) {
+    var filters = [];
+    var splitted = values.split(' ');
+    for (var _i in splitted) {
+        if (splitted[_i].trim() != '')
+            filters.push({filter: splitted[_i].trim(), regexp: globStringToRegex(splitted[_i].trim())});
+    }
+    return filters;
+}
+
+function tablematcher(field, tableid, displayid, deviceid) {
+    var matchCount = 0;
+    var totalCount = 0;
+    var values = field.value;
+    var filters = getFilterList(values);
+
+    var table = document.getElementById(tableid);
+    for (var row in table.rows) {
+        var tr = table.rows[row];
+        var visible = true;
+        if (tr && tr.dataset && tr.dataset.sn) {
+            if (deviceid == null || deviceid == tr.id) {
+                // console.log("checking " + tr.id);
+                // console.log(regValue);
+                for (var index in filters) {
+                    var value = filters[index].filter;
+                    var regValue = filters[index].regexp;
+                    var attrmatch = false;
+                    // console.log("match: " + value);
+                    for (var attr in tr.dataset) {
+                        if (attr.substring(0, 5) == "match") {
+                            attrvalue = eval('tr.dataset.' + attr);
+                            if (regValue.test(attrvalue)) {
+                                // console.log("match on " + attr + " (" + attrvalue + ")");
+                                attrmatch = true;
+                                // console.log("match: " + value + ": attr: " + attr + "=" + attrvalue);
+                            }
+                        }
+                    }
+                    if (!attrmatch) {
+                        // console.log("no match for " + value);
+                    }
+                    visible = visible & attrmatch;
+                }
+                tr.style.display = !visible ? "none" : "";
+                if (visible) {
+                    matchCount++;
+                }
+            } else {
+                matchCount += (getVisibility(tr.id) == "none" ? 0 : 1);
+            }
+            totalCount++;
+        }
+    }
+    var display = document.getElementById(displayid);
+    if (display) {
+        var tstr = document.createTextNode(values);
+        var div = document.createElement('div');
+        div.appendChild(tstr);
+        // alert(tstr.innerHTML);
+        display.innerHTML = (totalCount == matchCount) ? "" : ("(" + matchCount + " filtered by <i>" + div.innerHTML + "</i>)");
+    }
+    return matchCount;
+}
+
+function noSubmit() {
+    ignoreFormSubmit = true;
+}
+
+function globStringToRegex(str) {
+    return new RegExp("\\b" + preg_quote(str).replace(/\\\*/g, '.*').replace(/\\\?/g, '.') + "\\b", 'gi');
+}
+function preg_quote(str, delimiter) {
+    // http://kevin.vanzonneveld.net
+    // +   original by: booeyOH
+    // +   improved by: Ates Goral (http://magnetiq.com)
+    // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+    // +   bugfixed by: Onno Marsman
+    // +   improved by: Brett Zamir (http://brett-zamir.me)
+    // *     example 1: preg_quote("$40");
+    // *     returns 1: '\$40'
+    // *     example 2: preg_quote("*RRRING* Hello?");
+    // *     returns 2: '\*RRRING\* Hello\?'
+    // *     example 3: preg_quote("\\.+*?[^]$(){}=!<>|:");
+    // *     returns 3: '\\\.\+\*\?\[\^\]\$\(\)\{\}\=\!\<\>\|\:'
+    return (str + '').replace(new RegExp('[.\\\\+*?\\[\\^\\]$(){}=!<>|:\\' + (delimiter || '') + '-]', 'g'), '\\$&');
 }

@@ -2075,7 +2075,7 @@ class InputPageLinkField extends InputPageText {
         $this->url = $url;
         if (is_null($text)) {
             $tmp = parse_url($url);
-            if ($tmp["host"] == "") {
+            if (!isset($tmp["host"]) || $tmp["host"] == "") {
                 // no host, probably relative path
                 $text = $tmp["path"];
             } else {

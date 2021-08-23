@@ -20,7 +20,7 @@
 -->
 
 <!--- Put your DTDDoc comment here. -->
-<!ELEMENT config (backup|master|fwstorage|status|times|phases|environments|classes|nobootdev|stdargs|nofirmdev|customcerts|queries)*>
+<!ELEMENT config (classes|master|fwstorage|backup|status|times|phases|queries|environments|nobootdev|nofirmdev|customcerts|stdargs)*>
 <!ATTLIST config
     debugmerge CDATA #IMPLIED
     debugcerts CDATA #IMPLIED
@@ -28,11 +28,21 @@
   >
 
 <!--- Put your DTDDoc comment here. -->
-<!ELEMENT master EMPTY>
+<!ELEMENT master (applies)*>
 <!ATTLIST master
     info CDATA #IMPLIED
     expire CDATA #IMPLIED
     cache CDATA #IMPLIED
+    user CDATA #IMPLIED
+    password CDATA #IMPLIED
+    firmware CDATA #IMPLIED
+    bootcode CDATA #IMPLIED
+  >
+
+<!--- Put your DTDDoc comment here. -->
+<!ELEMENT applies (#PCDATA)>
+<!ATTLIST applies
+    env CDATA #IMPLIED
   >
 
 <!--- Put your DTDDoc comment here. -->
@@ -63,11 +73,12 @@
 <!--- Put your DTDDoc comment here. -->
 <!ELEMENT times EMPTY>
 <!ATTLIST times
-    allow CDATA #IMPLIED
-    dir CDATA #IMPLIED
     initial CDATA #IMPLIED
+    dir CDATA #IMPLIED
+    allow CDATA #IMPLIED
     check CDATA #IMPLIED
     polling CDATA #IMPLIED
+    forcestaging CDATA #IMPLIED
     interval CDATA #IMPLIED
     grace CDATA #IMPLIED
     forcehttps CDATA #IMPLIED
@@ -122,29 +133,29 @@
     CAtype CDATA #IMPLIED
     dir CDATA #IMPLIED
     CAkeys CDATA #IMPLIED
-    CSRsignature CDATA #IMPLIED
     CAuser CDATA #IMPLIED
-    CApassword CDATA #IMPLIED
-    CSRsan-ip-2 CDATA #IMPLIED
-    CSRdn-l CDATA #IMPLIED
-    CAurl CDATA #IMPLIED
-    CSRdn-o CDATA #IMPLIED
-    CAname CDATA #IMPLIED
-    CSRsan-ip-1 CDATA #IMPLIED
-    CSRkey CDATA #IMPLIED
-    CSRsan-dns-1 CDATA #IMPLIED
-    CAnamesep CDATA #IMPLIED
-    CAwildcard CDATA #IMPLIED
-    CSRdn-c CDATA #IMPLIED
-    auto-sign-off CDATA #IMPLIED
-    CSRdn-st CDATA #IMPLIED
-    network CDATA #IMPLIED
-    netmask CDATA #IMPLIED
     renew CDATA #IMPLIED
-    CSRdn-cn CDATA #IMPLIED
-    CSRdn-ou CDATA #IMPLIED
-    CSRsan-dns-2 CDATA #IMPLIED
+    CSRsignature CDATA #IMPLIED
+    CSRdn-st CDATA #IMPLIED
     CSRsan-dns-3 CDATA #IMPLIED
+    CApassword CDATA #IMPLIED
+    CSRdn-ou CDATA #IMPLIED
+    CAurl CDATA #IMPLIED
+    CSRdn-l CDATA #IMPLIED
+    CSRsan-ip-2 CDATA #IMPLIED
+    network CDATA #IMPLIED
+    CSRdn-o CDATA #IMPLIED
+    auto-sign-off CDATA #IMPLIED
+    CSRsan-dns-1 CDATA #IMPLIED
+    CAname CDATA #IMPLIED
+    netmask CDATA #IMPLIED
+    CAnamesep CDATA #IMPLIED
+    CSRsan-ip-1 CDATA #IMPLIED
+    CAwildcard CDATA #IMPLIED
+    CSRkey CDATA #IMPLIED
+    CSRsan-dns-2 CDATA #IMPLIED
+    CSRdn-c CDATA #IMPLIED
+    CSRdn-cn CDATA #IMPLIED
   >
 
 <!--- Put your DTDDoc comment here. -->
@@ -172,9 +183,6 @@
 
 <!--- Put your DTDDoc comment here. -->
 <!ELEMENT cmd (#PCDATA)>
-
-<!--- Put your DTDDoc comment here. -->
-<!ELEMENT applies (#PCDATA)>
 
 <!--- Put your DTDDoc comment here. -->
 <!ELEMENT show (#PCDATA)>

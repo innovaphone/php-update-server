@@ -44,28 +44,26 @@ class doLogin extends InputPageAction {
             $page->logout->hidden = true;
         }
         $_SESSION['logged-on'] = UpdateV2Page::$isLoggedin;
-	// print "<pre> doLogin session: "; var_dump($_SESSION); print "</pre>";
-	// print "<pre> doLogin sessionId: "; var_dump(session_id()); print "</pre>";
+        // print "<pre> doLogin session: "; var_dump($_SESSION); print "</pre>";
+        // print "<pre> doLogin sessionId: "; var_dump(session_id()); print "</pre>";
         $class = get_class($page);
-        $newpage = new $class($page->pi, $page->site);
+        $newpage = new $class($page->pi, $page->site, $class);
         $newpage->render();
     }
 
 }
 
-class doLogout extends InputPageAction {
+class doSwitch2Page extends InputPageAction {
 
-    function __construct($name, $value, $prompt = null) {
+    function __construct($class, $name, $value, $prompt = null) {
         parent::__construct($name, $value, $prompt);
         $this->anyway = true;
+        $this->class = $class;
     }
 
     function action(InputPage &$page, $phase) {
-        $class = get_class($page);
-        $_SESSION['logged-on'] = false;
-        UpdateV2Page::$isLoggedin = false;
-        $page->logout->hidden = true;
-        $newpage = new $class($page->pi, $page->site);
+
+        $newpage = new $this->class($page->pi, $page->site, $this->class);
         $newpage->render();
     }
 
@@ -120,12 +118,7 @@ class UpdateV2Page extends innoInputPage {
      * @var doLogin 
      */
     var $login = null;
-
-    /**
-     *
-     * @var doLogout 
-     */
-    var $logout = null;
+    var $navigationButtons = array();
 
     function __construct(UpdateServerV2 $pi, $site, $title = null) {
         parent::__construct($site, $title);
@@ -138,12 +131,16 @@ class UpdateV2Page extends innoInputPage {
         $this->links = array(array("rel" => "stylesheet", "type" => "text/css", "href" => "../web/style.css"));
 
 
-        session_start();
-	// print "<pre>";
-	// var_dump($_COOKIE);
-	// var_dump($_SESSION);
-	// print "</pre>";
+        if (!isset($_SESSION))
+            session_start();
+        // print "<pre>";
+        // var_dump($_COOKIE);
+        // var_dump($_SESSION);
+        // print "</pre>";
         UpdateV2Page::$isLoggedin = isset($_SESSION['logged-on']) ? $_SESSION['logged-on'] : false;
+        if (isset($_GET['nohttps'])) {
+            $_SESSION['nohttps'] = true;
+        }
 
         $this->pi = $pi;
         $this->gooduser = $gooduser = LessSimpleXMLElement::getAttributeFromXML($pi->xmlconfig->master, "user", null);
@@ -151,24 +148,46 @@ class UpdateV2Page extends innoInputPage {
         if (!($goodpw == "" && $gooduser == "")) {
             // maintain a session
             // force https
-            if (!(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on')) {
-                $url = "https://{$_SERVER['HTTP_HOST']}{$_SERVER['PHP_SELF']}?{$_SERVER["QUERY_STRING"]}";
-                $this->warp($url);
-                exit;
+            if (!isset($_SESSION['nohttps']) || !$_SESSION['nohttps']) {
+                if (!(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on')) {
+                    $url = "https://{$_SERVER['HTTP_HOST']}{$_SERVER['PHP_SELF']}?{$_SERVER["QUERY_STRING"]}";
+                    $this->warp($url);
+                    exit;
+                }
             }
         }
 
         // create fields
+        $pageTypes = array("StatusPage", "ShowPage", "InfoPage");
+        $this->setFieldSectionAttributes("inline", new _InputPageFieldSectionAttributes(array(), count($pageTypes) + 1));
+        $this->fieldSectionAttributes['top']->attributes = array();
+        $this->setFieldSectionAttributes("top", new _InputPageFieldSectionAttributes(array("align" => "left"), count($pageTypes) + 1));
         $this->addField($this->user = new InputPageStringField("user", "User: ", "", null, "admin user name"));
         $this->addField($this->pw = new InputPagePasswordField("pw", "Password: ", "", null));
         $this->addField($this->login = new doLogin("dologin", "Login"));
-        $this->addField($this->logout = new doLogout("dologout", "Logout"));
+        $myclass = get_class($this);
+        // rotate current page to the front
+        $maxrotate = count($pageTypes);
+        $flip = null;
+        while ((($flip = array_shift($pageTypes)) != $myclass) && $maxrotate-- > 0)
+            $pageTypes[] = $flip;
+        array_unshift($pageTypes, $flip);
+        // add logout button
+        $pageTypes[] = "LoginPage";
+        foreach ($pageTypes as $goto) {
+            $this->addField($this->navigationButtons[$goto] = new doSwitch2Page($goto, "switch2$goto", "->$goto"));
+            $this->navigationButtons[$goto]->style = "top";
+            $this->navigationButtons[$goto]->onnewline = false;
+        }
         $this->user->updateFromForm();
         $this->pw->updateFromForm();
 
         if (!self::$isLoggedin) {
             $this->logout->hidden = true;
             $this->pw->msg = "Wrong User/Password";
+            foreach ($this->navigationButtons as $b)
+                $b->hidden = true;
+            $this->setFieldSectionAttributes("inline", new _InputPageFieldSectionAttributes(array(), 1));
         } else {
             $this->user->hidden = true;
             $this->pw->hidden = true;
@@ -208,15 +227,18 @@ class SelectPage extends UpdateV2Page {
     function __construct(UpdateServerV2 $pi, $site, $title = null) {
         parent::__construct($pi, $site, $title);
         if (self::$isLoggedin) {
-            $this->addField(new InputPageText(null, "
-                <ul>
-                    <li>
-                        <a href='admin/admin.php?mode=status'>->Status Page</a>
-                    <li>
-                        <a href='admin/admin.php?mode=info'>->Info Page</a>
-                    <li>
-                        <a href='admin/admin.php?mode=show'>->Configuration Page</a>
-                </ul>"));
+            /*
+              $this->addField(new InputPageText(null, "
+              <ul>
+              <li>
+              <a href='admin/admin.php?mode=status'>->Status Page</a>
+              <li>
+              <a href='admin/admin.php?mode=info'>->Info Page</a>
+              <li>
+              <a href='admin/admin.php?mode=show'>->Configuration Page</a>
+              </ul>"));
+             * 
+             */
         }
     }
 
@@ -226,13 +248,23 @@ class PlainTextPage extends UpdateV2Page {
 
     var $text = null;
 
+    /**
+     * field that holds aribitrary text
+     * @var InputPageText
+     */
+    var $textfield;
+
     function __construct(UpdateServerV2 $pi, $site, $title) {
         parent::__construct($pi, $site, $title);
 
         if (self::$isLoggedin) {
             $this->addField(new InputPageHiddenIdField("mode", "status"));
-            $this->textfield = $this->addField(new InputPageText("text", ""));
+            $this->addField($this->textfield = new InputPageText("text", ""));
+            // $this->textfield->fullline = $this->textfield->onnewline = true;
         }
+
+        // make sure the "form" is never submitted
+        $this->attributes['onsubmit'] = 'return checkFormSubmittal(this, event);';
     }
 
 }
@@ -244,6 +276,20 @@ class StatusPage extends PlainTextPage {
         if (self::$isLoggedin) {
             $this->textfield->value = $pi->status();
         }
+    }
+
+}
+
+class LoginPage extends PlainTextPage {
+
+    function __construct(UpdateServerV2 $pi, $site, $title) {
+        parent::__construct($pi, $site, $title);
+        $_SESSION['logged-on'] = false;
+        UpdateV2Page::$isLoggedin = false;
+        $page->logout->hidden = true;
+        $newpage = new UpdateV2Page($pi, $site, $title);
+        $newpage->render();
+        exit;
     }
 
 }
@@ -424,6 +470,6 @@ if (isset($_REQUEST['mode'])) {
             die("unknown mode={$_REQUEST['mode']}");
     }
 } else {
-    $page = new SelectPage($pi, "UpdateServerV2", "");
+    $page = new StatusPage($pi, "UpdateServerV2", "");
     $page->work();
 }
