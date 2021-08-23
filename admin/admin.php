@@ -374,7 +374,8 @@ class InfoPage extends UpdateV2Page {
                         "config add UP1 /url $url/update.php?env=$uenv /poll 1\r\n" .
                         "config add CMD0 /name $udevname\r\n" .
                         "config write\r\n" .
-                        "config activate\r\n";
+                        "config activate\r\n" . 
+                        "mod cmd UP1 poll\r\n";
 
                 $this->addField(new InputPageText(null, "Here is the link you can send to a <i>myPBX for iOS</i> user to set up his device properly:"));
                 $this->urlwi_field = $fld = $this->addField(new InputPageText(null, "<div><a href='$dscheme:$cmd'>Please click here to setup your myPBX for iOS as <i>$hdevname</i></a>.</div>"));
