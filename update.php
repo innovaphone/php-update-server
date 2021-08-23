@@ -1,6 +1,16 @@
 <?php
 
+// error_reporting(E_ALL);
+
 require_once('classes/updateserverV2.class.php');
+require_once 'scripting.class.php';
+@include('config/scripting.class.php');
+
+if (class_exists("CustomUpdateSnippet", false)) {
+    $scriptSnippet = new CustomUpdateSnippet();
+} else {
+    $scriptSnippet = new UpdateSnippet();
+}
 
 $url = "http://{$_SERVER['HTTP_HOST']}{$_SERVER['PHP_SELF']}";
 $isHTTPS = false;
@@ -271,13 +281,8 @@ function rewriteUrl($usehttps = false, $usehttpsport = 443) {
         }
 
         print "\r\n";
-        /*
-          if ($newargs !== false && count($newargs))
-          notify("changed state query args: " . implode(", ", array_keys($newargs)));
-         */
-        if (is_array($missingArgs) && count($missingArgs))
-            notify("missing query args: " . implode(", ", array_keys($missingArgs)));
-
+        #if ($newargs !== false && count($newargs)) notify("changed state query args: " . implode(", ", array_keys($newargs)));
+        if (is_array($missingArgs) && count($missingArgs)) notify("missing query args: " . implode(", ", array_keys($missingArgs)));
         echo "config add UP1 /url " . rawurlencode($newurl) . "\r\n";
         echo "config add UP1 /no-dhcp\r\n";
         echo "config write\r\n";
@@ -428,8 +433,10 @@ if ($newestfiletime) {
 // do we need to do certificate renewal?
 print "\r\n";
 $certcmds = $pi->doCertificates($type, $certmsgs, $certificateIsOK);
-if (count($certmsgs))
-    $pi->logDeviceState("certstat", $certmsgs[array_pop(array_keys($certmsgs))], "device");
+if ($certmsgs !== null && count($certmsgs)) {
+    $ak = array_keys($certmsgs);
+    $pi->logDeviceState("certstat", $certmsgs[array_pop($ak)], "device");
+}
 
 
 // shall we gather more device data?
@@ -591,8 +598,10 @@ if ($reset) {
 }
 
 // shall we deploy certificates?
-foreach ($certmsgs as $msg) {
-    notify("certificates: $msg ");
+if ($certmsgs !== null) {
+    foreach ($certmsgs as $msg) {
+        notify("certificates: $msg ");
+    }
 }
 if ($certcmds !== null) {
     foreach ($certcmds as $cmt => $c) {
@@ -710,10 +719,16 @@ if ($nextphase !== null) {
     $pi->setStateArg("polling", 0);
 }
 
+// provide all info to custom snippet class
+$scriptSnippet->statexml = $pi->statexml;
+// $scriptSnippet->dump(); 
 // guard against unchanged config files (only for the final phase, all others are repeated upon request)
 $deliverSnippets = true;
 $docheck = false;
-if (($nextphase === null) && ($sig = $pi->getFilesSignature($files)) !== null) {
+$sendStandardSnippets = $scriptSnippet->sendStandardSnippets();
+$custom1 = $scriptSnippet->getPreSnippet();
+$custom2 = $scriptSnippet->getPostSnippet();
+if (($nextphase === null) && ($sig = $pi->getFilesSignature($sendStandardSnippets ? $files : array(), $custom1, $custom2)) !== null) {
     $docheck = true;
     if (isset($_REQUEST['CHECK']) && $_REQUEST['CHECK'] == $sig) {
         $deliverSnippets = false;
@@ -722,18 +737,28 @@ if (($nextphase === null) && ($sig = $pi->getFilesSignature($files)) !== null) {
 
 if ($deliverSnippets) {
     // need to deliver snippets
-    foreach ($files as $file) {
-        notify("    $file");
-        print "# { \r\n# begin script '$file' \r\n";
-        $script = @file_get_contents("./$file");
-        if ($script === false)
-            notify("cannot read script '$file' in " . getcwd() . "");
-        else {
-            print "$script\r\n";
-            $pi->logDeviceState("delivered", time(), "config", array("filename", "$file"));
-            $pi->logDeviceState("version", filemtime($file), "config", array("filename", "$file"));
+    foreach ($custom1 as $line) {
+        print "$line\r\n";
+    }
+    if ($sendStandardSnippets) {
+        foreach ($files as $file) {
+            notify("    $file");
+            print "# { \r\n# begin script '$file' \r\n";
+            $script = @file_get_contents("./$file");
+            if ($script === false)
+                notify("cannot read script '$file' in " . getcwd() . "");
+            else {
+                print "$script\r\n";
+                $pi->logDeviceState("delivered", time(), "config", array("filename", "$file"));
+                $pi->logDeviceState("version", filemtime($file), "config", array("filename", "$file"));
+            }
+            print "# end script '$file'\r\n# }\r\n";
         }
-        print "# end script '$file'\r\n# }\r\n";
+    } else {
+        print "# standard snippets suppressed by custom snippet\r\n";
+    }
+    foreach ($custom2 as $line) {
+        print "$line\r\n";
     }
     print "\r\n# end of all scripts \r\n";
 

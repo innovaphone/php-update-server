@@ -166,16 +166,28 @@ class UpdateV2Page extends innoInputPage {
         $this->addField($this->pw = new InputPagePasswordField("pw", "Password: ", "", null));
         $this->addField($this->login = new doLogin("dologin", "Login"));
         $myclass = get_class($this);
-        // rotate current page to the front
-        $maxrotate = count($pageTypes);
-        $flip = null;
-        while ((($flip = array_shift($pageTypes)) != $myclass) && $maxrotate-- > 0)
-            $pageTypes[] = $flip;
-        array_unshift($pageTypes, $flip);
+
         // add logout button
         $pageTypes[] = "LoginPage";
         foreach ($pageTypes as $goto) {
-            $this->addField($this->navigationButtons[$goto] = new doSwitch2Page($goto, "switch2$goto", "->$goto"));
+            // friendly display names
+            $goto_display = $goto;
+            switch ($goto_display) {
+                case 'LoginPage':
+                    $goto_display = 'Logout';
+                    break;
+                case 'StatusPage':
+                    $goto_display = 'Device overview';
+                    break;
+                case 'ShowPage':
+                    $goto_display = 'Show config';
+                    break;
+                case 'InfoPage':
+                    $goto_display = 'Add new device';
+                    break;
+            }
+
+            $this->addField($this->navigationButtons[$goto] = new doSwitch2Page($goto, "switch2$goto", "$goto_display"));
             $this->navigationButtons[$goto]->style = "top";
             $this->navigationButtons[$goto]->onnewline = false;
         }
@@ -378,11 +390,11 @@ class InfoPage extends UpdateV2Page {
                         "mod cmd UP1 poll\r\n";
 
                 $this->addField(new InputPageText(null, "Here is the link you can send to a <i>myPBX for iOS</i> user to set up his device properly:"));
-                $this->urlwi_field = $fld = $this->addField(new InputPageText(null, "<div><a href='$dscheme:$cmd'>Please click here to setup your myPBX for iOS as <i>$hdevname</i></a>.</div>"));
+                $this->urlwi_field = $fld = $this->addField(new InputPageText(null, "<div><a href='$dscheme://".urlencode($cmd)."'>Please click here to setup your myPBX for iOS as <i>$hdevname</i></a>.</div>"));
                 // $this->addField(new InputPageHorizontalRule());
 
                 $this->addField(new InputPageText(null, "Here is the link you can send to a <i>myPBX for Android</i> user to set up his device properly:"));
-                $this->urlwa_field = $fld = $this->addField(new InputPageText(null, "<div><a href='https://$dscheme/$cmd'>Please click here to setup your myPBX for Android as <i>$hdevname</i></a>.</div>"));
+                $this->urlwa_field = $fld = $this->addField(new InputPageText(null, "<div><a href='https://$dscheme/".urlencode($cmd)."'>Please click here to setup your myPBX for Android as <i>$hdevname</i></a>.</div>"));
 
                 /*
                  * generic

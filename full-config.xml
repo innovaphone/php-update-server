@@ -2,7 +2,7 @@
 <!DOCTYPE config SYSTEM "full-config.dtd">
 
 <!--
-this is a pseudo config file that includes all tgs and all attributes at löeast one.  Used to generate .dtd file.
+this is a pseudo config file that includes all tags and all attributes at least one.  Used to generate .dtd file.
 DO NOT use for production!
 -->
 
@@ -26,6 +26,7 @@ DO NOT use for production!
         dir=""
         nbackups=""
         scfg=""
+        minage=""
     />
     
     <status

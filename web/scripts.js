@@ -166,6 +166,12 @@ function tablematcher(field, tableid, displayid, deviceid) {
     var matchCount = 0;
     var totalCount = 0;
     var values = field.value;
+    // normalize mac address
+    if (values.length == 12 && values.slice(0, 6) == "009033") {
+        values = values.slice(0, 2)+'-'+values.slice(2, 4)+'-'+values.slice(4, 6)+'-'+values.slice(6, 8)+'-'+values.slice(8, 10)+'-'+values.slice(10, 12);
+        // console.log('normalize mac to: '+values);
+    }
+
     var filters = getFilterList(values);
 
     var table = document.getElementById(tableid);

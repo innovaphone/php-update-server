@@ -691,24 +691,31 @@ class UpdateServerV2 {
     }
 
     public function getTimes($staging = false) {
-        if (!isset($this->xmlconfig->times) ||
-                (!isset($this->xmlconfig->times['allow']) && !isset($this->xmlconfig->times['initial'])))
+        if (!isset($this->xmlconfig->times) || (!isset($this->xmlconfig->times['allow']) && !isset($this->xmlconfig->times['initial']))) {
             return null;
+        }
+
         $times = "";
         if (!($staging && isset($this->xmlconfig->times['forcestaging']) && ($this->xmlconfig->times['forcestaging'] == "true"))) {
-            if (isset($this->xmlconfig->times['allow']))
+            if (isset($this->xmlconfig->times['allow'])) {
                 $times .= " /allow {$this->xmlconfig->times['allow']}";
+            }
+        } else {
+            print "\r\n# Skip restricted times, initial staging / forcestaging\r\n";
         }
-        if (isset($this->xmlconfig->times['initial']))
+
+        if (isset($this->xmlconfig->times['initial'])) {
             $times .= " /initial {$this->xmlconfig->times['initial']}";
+        }
+
         return $times == "" ? null : "mod cmd UP1 times $times";
     }
 
-    public function getFilesSignature($files) {
+    public function getFilesSignature($files, array $custom1, array $custom2) {
         if (!isset($this->xmlconfig->times['check']) ||
                 (string) $this->xmlconfig->times['check'] != "true")
             return null;
-        $fs = "";
+        $fs = implode("", $custom1);
         // add all file contents, removing white space
         foreach ($files as $f) {
             if (($handle = @fopen($f, "r")) === false)
@@ -721,6 +728,7 @@ class UpdateServerV2 {
             }
             fclose($handle);
         }
+        $fs .= implode("", $custom2);
         return hash("md5", $fs);
     }
 
@@ -1209,6 +1217,7 @@ class UpdateServerV2 {
             $lastsavedcontent = "";
             $nfiles = 0;
             $newest = null;
+            $tfiles = array();
         } else {
             // sort by ctime
             $rfiles = array();
@@ -1227,6 +1236,7 @@ class UpdateServerV2 {
             if (($lastsavedcontent = @file_get_contents($newest)) === false) {
                 self::bailout("backup: cannot read file '$newest'");
             }
+            $tfiles = array_flip($rfiles);
         }
         // make sure directory exists
         $newfn = "$loc/$hwid.$newestindex.txt";
@@ -1263,10 +1273,18 @@ class UpdateServerV2 {
             print "# saving $newfn\r\n";
         }
         // remove extra old backups
+        $tnow = time();
+        $minage = (isset($this->xmlconfig->backup) && isset($this->xmlconfig->backup['minage'])) ? (int) $this->xmlconfig->backup['minage'] : 0;
+        $t0 = $tnow - ($minage /* days */ * 24 /* hours */ * 60 /* minutes */ * 60 /* seconds */);
         while ($nfiles-- >= $nbackups) {
             $todel = array_shift($files);
-            print "# removing $todel\r\n";
-            @unlink($todel);
+            $mtime = isset($tfiles[$todel]) ? $tfiles[$todel] : $tnow;
+            if ($mtime < $t0) {
+                print "# removing $todel tnow=$tnow t0=$t0 minage=$minage mtime=$mtime\r\n";
+                @unlink($todel);
+            } else {
+                print "# not removing $todel tnow=$tnow t0=$t0 minage=$minage mtime=$mtime\r\n";
+            }
         }
         return time();
     }
@@ -1976,10 +1994,18 @@ class UpdateServerV2 {
         // purge old files
         if ($this->stateexpire == 0)
             return;
+        // we only do this once per hour
         $now = time();
-        foreach (glob("{$this->statedir}/*.xml") as $f) {
-            if (($now - @filemtime($f)) > $this->stateexpire)
-                @unlink($f);
+        $stamp = "{$this->statedir}/lastcleanup";
+        $lc = @filemtime($stamp);
+        if ($lc === FALSE || (($now - $lc) > (60 /* minutes */ * 60 /* seconds */))) {
+            // we still do have a race condition here (2 callers could do it in parallel)
+            // but it does no harm
+            foreach (glob("{$this->statedir}/*.xml") as $f) {
+                if (($now - @filemtime($f)) > $this->stateexpire)
+                    @unlink($f);
+            }
+            touch($stamp);
         }
     }
 

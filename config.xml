@@ -40,6 +40,7 @@ Do NOT modify this file!   Put local settings in to user-config.xml rather
         httpsport=""
         forcetrust=""
         httpsurlmod="!mtls/!!i"
+        forcestaging="true"
     />
     
     <phases>
@@ -53,6 +54,8 @@ Do NOT modify this file!   Put local settings in to user-config.xml rather
     <classes>
         <class id="phone">
             <!-- all phone types -->
+            <model>ip101</model>
+            <model>ip102</model>
             <model>ip110</model>
             <model>ip110A</model>
             <model>ip111</model>
@@ -79,6 +82,8 @@ Do NOT modify this file!   Put local settings in to user-config.xml rather
         </class>
         <class id="opus_phone">
             <!-- all phones that support opus -->
+            <model>ip101</model>
+            <model>ip102</model>
             <model>ip111</model>
             <model>ip112</model>
             <model>mypbxi</model>
@@ -126,6 +131,8 @@ Do NOT modify this file!   Put local settings in to user-config.xml rather
         </class>
         <class id="phone_newui">
             <!-- all phone types with v12 and later phone ui -->
+            <model>ip101</model>
+            <model>ip102</model>
             <model>ip111</model>
             <model>ip112</model>
             <model>ip222</model>
@@ -164,6 +171,7 @@ Do NOT modify this file!   Put local settings in to user-config.xml rather
             <model>ip411</model>
             <model>ip6000</model>
             <model>ip6010</model>
+            <model>ip6012</model>
             <model>ip800</model>
             <model>ip810</model>
             <model>ip811</model>
@@ -202,6 +210,7 @@ Do NOT modify this file!   Put local settings in to user-config.xml rather
             <model>ip3000</model>
             <model>ip6000</model>
             <model>ip6010</model>
+            <model>ip6012</model>
         </class>
         <class id="pbx">
             <model>ipva</model>
@@ -218,11 +227,11 @@ Do NOT modify this file!   Put local settings in to user-config.xml rather
             <model>ip411</model>
             <model>ip6000</model>
             <model>ip6010</model>
+            <model>ip6012</model>
             <model>ip800</model>
             <model>ip810</model>
             <model>ip811</model>
         </class>
-        
     </classes>
     
     <nobootdev> 
@@ -231,11 +240,17 @@ Do NOT modify this file!   Put local settings in to user-config.xml rather
         <model>swphone</model>
         <model>mypbxa</model>
         <model>mypbxi</model>
+        <model>ipbs</model>
+        <model>ipbs2</model>
+        <model>pbl</model>
     </nobootdev>
     
     <nofirmdev>
         <model>swphone</model>
         <model>mypbxi</model>
+        <model>ipbs</model>
+        <model>ipbs2</model>
+        <model>pbl</model>
     </nofirmdev>
     
     <filenames>

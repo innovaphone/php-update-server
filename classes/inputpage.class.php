@@ -3506,6 +3506,15 @@ class InputPageListField extends sendableGenericInputPageItem {
                 if(isset($row[$name."_readonly"])) {
                     $field->attributes["readonly"] = "readonly";
                 }
+                else {
+                    unset($field->attributes["readonly"]);
+                }
+                if(isset($row[$name."_disabled"])) {
+                    $field->attributes["disabled"] = "disabled";
+                }
+                else {
+                    unset($field->attributes["disabled"]);
+                }
                 if(isset($row[$name."_max"])) {
                     $field->attributes["max"] = $row[$name."_max"];
                 }
