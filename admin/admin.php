@@ -45,7 +45,7 @@ class doLogin extends InputPageAction {
         }
         $_SESSION['logged-on'] = UpdateV2Page::$isLoggedin;
         $class = get_class($page);
-        $newpage = new $class($page->pi, "bla", "seier");
+        $newpage = new $class($page->pi, $page->site);
         $newpage->render();
     }
 
@@ -63,7 +63,7 @@ class doLogout extends InputPageAction {
         $_SESSION['logged-on'] = false;
         UpdateV2Page::$isLoggedin = false;
         $page->logout->hidden = true;
-        $newpage = new $class($page->pi, "bla", "seier");
+        $newpage = new $class($page->pi, $page->site);
         $newpage->render();
     }
 
