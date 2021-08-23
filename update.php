@@ -470,13 +470,14 @@ if (isset($pi->xmlconfig->master) && isset($pi->xmlconfig->master['info']) && $p
                 $noboots[] = strtolower((string) $dev);
             }
         }
-        // print "# noboot: " . implode(", ", $noboots) . "\r\n";
+        
         if (isset($pi->xmlconfig->nofirmdev->model)) {
             foreach ($pi->xmlconfig->nofirmdev->model as $dev) {
                 $nofirms[] = strtolower((string) $dev);
             }
         }
-        print "# nofirm: " . implode(", ", $nofirms) . " ype=$type\r\n";
+        print "# nofirm: " . implode(", ", $nofirms) . ". This device type=$type\r\n";
+        print "# noboot: " . implode(", ", $noboots) . "\r\n";
 
         if (!in_array(strtolower($type), $nofirms)) {
             if (!isset($_REQUEST['PROT']) || ($_REQUEST['PROT'] != (string) $info->prot)) {
@@ -485,6 +486,8 @@ if (isset($pi->xmlconfig->master) && isset($pi->xmlconfig->master['info']) && $p
                 $pi->logDeviceState("requested", $info->prot, "firmware");
                 $pi->logDeviceState("requested-at", time(), "firmware");
                 $reset = true;
+            } else {
+                print "# firmware {$info->prot} good\r\n";
             }
         } else {
             print "# no firmware for device of type '$type'\r\n";
@@ -496,6 +499,8 @@ if (isset($pi->xmlconfig->master) && isset($pi->xmlconfig->master['info']) && $p
                 $pi->logDeviceState("requested", $info->boot . "bootcode");
                 $pi->logDeviceState("requested-at", time(), "bootcode");
                 $reset = true;
+            } else {
+                print "# boot code {$info->boot} good\r\n";
             }
         } else {
             print "# no bootcode for device of type '$type'\r\n";

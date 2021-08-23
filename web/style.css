@@ -17,6 +17,9 @@ th {
 .upd-tag-implies {
     padding-left: 4em;
 }
+.upd-subtag {
+    padding-left: 6em; 
+}
 
 .upd-value-implies {
     display: block;

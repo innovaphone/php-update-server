@@ -166,6 +166,41 @@ Do NOT modify this file!   Put local settings in to user-config.xml rather
             <model>ip810</model>
             <model>ip811</model>
         </class>
+        <class id="fxogw">
+            <model>ip38</model>
+            <model>ip311</model>
+        </class>
+        <class id="fxsgw">
+            <model>ip302</model>
+            <model>ip22</model>
+            <model>ip24</model>
+            <model>ip28</model>
+            <model>ip29</model>
+            <model>ip29-2</model>
+            <model>ip29-4</model>
+            <model>ip311</model>
+            <model>ip411</model>
+        </class>
+        <class id="brigw">
+            <model>ip302</model>
+            <model>ip305</model>
+            <model>ip400</model>
+            <model>ip411</model>
+            <model>ip800</model>
+            <model>ip810</model>
+            <model>ip811</model>
+            <model>ip3010</model>
+            <model>ip6010</model>
+        </class>
+        <class id="prigw">
+            <model>ip1060</model>
+            <model>ip1130</model>
+            <model>ip3010</model>
+            <model>ip3011</model>
+            <model>ip3000</model>
+            <model>ip6000</model>
+            <model>ip6010</model>
+        </class>
         
     </classes>
     

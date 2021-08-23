@@ -602,6 +602,8 @@ class UpdateServerV2 {
                     $classes[$thisclass] = 1;
             }
         }
+        // add device type as implicit class
+        $classes[$type] = 1;
         return array_keys($classes);
     }
 
@@ -1276,6 +1278,18 @@ class UpdateServerV2 {
         return $this->_showSPAN("phases", "tag", $c);
     }
 
+    public function showClasses() {
+        $c = "";
+        foreach ($this->xmlconfig->classes->class as $key => $value) {
+            $cc = "";
+            $models = array();
+            foreach ($value->model as $model) $models[] = strtolower ($model);
+            $list = implode(", ", $models);
+            $c .= $this->_showSimpleElement($key, $value, $this->_showSPAN("model", "subtag", $list));
+        }
+        return $this->_showSPAN("classes", "tag", $c);
+    }
+
     public function showEnvironments() {
         $c = "";
         foreach ($this->xmlconfig->environments->environment as $key => $value) {
@@ -1314,7 +1328,7 @@ class UpdateServerV2 {
                         . $this->_showSimpleElement("customcerts")
                         . $this->showPhases()
                         . $this->showEnvironments()
-                        /* . $this->showClasses() */
+                        . $this->showClasses()
                         . $this->showScripts());
     }
 
