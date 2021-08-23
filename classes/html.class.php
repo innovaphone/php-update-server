@@ -191,7 +191,11 @@ abstract class HTMLDoc {
                     ***********************************************/
                     </script>';
             } else {
-                $ret .= '<script src="' . $this->makeRelativeLink($scriptfile) . '" type="text/javascript"></script>';
+                $scriptUrl = $scriptfile;
+                if(strpos($scriptfile, "http") !== 0) {
+                    $scriptUrl = $this->makeRelativeLink($scriptfile);
+                }
+                $ret .= '<script src="' . $scriptUrl . '" type="text/javascript"></script>';
             }
         }
         foreach ($this->scriptcodes as $scriptcode) {

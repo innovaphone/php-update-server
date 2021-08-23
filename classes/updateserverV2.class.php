@@ -761,7 +761,7 @@ class UpdateServerV2 {
     private function getCertificates() {
         if (!isset($this->statexml->queries->certificates->info->servercert) ||
                 !isset($this->statexml->queries->certificates->info->servercert->certificate)) {
-            return new SimpleXMLElement('<certificate subject_cn=""-- no CN --" issuer_cn=""-- no CA --" />');
+            return new SimpleXMLElement('<certificate subject_cn="-- no CN --" issuer_cn="-- no CA --" />');
         }
         $cas = array();
         foreach ($this->statexml->queries->certificates->info->servercert->certificate as $c) {
