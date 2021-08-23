@@ -370,7 +370,8 @@ class InfoPage extends UpdateV2Page {
                  */
                 $dscheme = "com.innovaphone.commands";
                 // config+add+UP1+%2Furl+http%3A%2F%2Fupdatev2.innovaphone.com%2Fmtls%2Fupdatev2%2Fupdate.php+%2Fpoll+1%0D%0Aconfig+add+CMD0+%2Fname+Nico%2520Mobile%0D%0Aconfig+write%0D%0Aconfig+activate
-                $cmd = "config add UP1 /url $url/update.php?env=$uenv /poll 1\r\n" .
+                $cmd = "ser\r\n" . // useless command which gets garbled in some iOS versions, doesnt hurt neither when done nore when ignored
+                        "config add UP1 /url $url/update.php?env=$uenv /poll 1\r\n" .
                         "config add CMD0 /name $udevname\r\n" .
                         "config write\r\n" .
                         "config activate\r\n";

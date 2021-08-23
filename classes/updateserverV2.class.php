@@ -1787,7 +1787,7 @@ class UpdateServerV2 {
         $scheme = isset($d->device->status) ?
                 (LessSimpleXMLElement::getAttributeFromXML($d->device->status, "usehttpsdevlinks", "true") ? "https" : "http") : "http";
         $target = $d->device['sn'];
-        $escapedName = htmlentities($d->queries->admin->info['name']);
+        $escapedName = isset($d->queries->admin->info['name']) ? htmlentities($d->queries->admin->info['name']) : "";
         return "<tr$xclass id='$id' "
                 . "data-match-realip='{$realip}' "
                 . "data-match-ip='{$ip}' "
