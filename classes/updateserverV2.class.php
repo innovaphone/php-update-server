@@ -177,7 +177,7 @@ class UpdateServerV2 {
             return 15;
     }
 
-// read config file
+    // read config file
     const defaultConfigFile = './config.xml';
     const userConfigFile = 'config/user-config.xml';
     const dvlUserConfigFile = 'config/user-config-dvl.xml';
@@ -275,9 +275,15 @@ class UpdateServerV2 {
     }
 
     /**
-     * read and merge XML config
+     * check, read and merge XML config
      */
     private function readConfig() {
+        // check config file
+        if (!is_file('config/user-config.xml')) {
+            self::bailout('Error: user-config.xml is missing. Please check the <a href="http://wiki.innovaphone.com/index.php?title=Howto:PHP_based_Update_Server_V2#Installation" target="_blank">documentation</a> for further details.');
+            return false;
+        }
+
         try {
             $this->xmlconfig = @new SimpleXMLElement(file_get_contents(self::defaultConfigFile));
         } catch (Exception $e) {
@@ -285,11 +291,7 @@ class UpdateServerV2 {
             return;
         }
         $userconfig = null;
-        foreach (
-        array(
-            self::dvlUserConfigFile,
-            self::userConfigFile,
-        ) as $ucf) {
+        foreach (array(self::dvlUserConfigFile, self::userConfigFile) as $ucf) {
             if (is_file($ucf)) {
                 try {
                     $this->xmluserconfig = @new SimpleXMLElement(file_get_contents($ucf));
