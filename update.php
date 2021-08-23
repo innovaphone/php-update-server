@@ -48,7 +48,7 @@ function cb_ob($buffer, $phase) {
     $i = -1;
     if (isset($_REQUEST['sn'])) {
         chdir(dirname($_SERVER['SCRIPT_FILENAME']));
-        $fn = "debug-{$_REQUEST['sn']}-certs.txt";
+        $fn = "debug/debug-{$_REQUEST['sn']}-certs.txt";
         $obfd = "\r\n";
         $obfd .= "========\r\n";
         $obfd .= "--" . implode(", ", $_REQUEST) . "\r\n";
@@ -562,7 +562,7 @@ if (LessSimpleXMLElement::getAttributeFromXML($pi->xmlconfig->times, "forcehttps
     // CERT fiddling
     $debugcerts = LessSimpleXMLElement::getAttributeFromXML($pi->xmluserconfig, 'debugcerts', "false") == "true";
     if ($debugcerts) {
-        $fd = fopen("Request-Certs.txt", "a");
+        $fd = fopen("debug/Request-Certs.txt", "a");
         foreach (
         array(
             "HTTPS", "SSL_CLIENT_S_DN", "SSL_CLIENT_S_DN_CN", "SSL_CLIENT_I_DN", "SSL_CLIENT_VERIFY", "SSL_SERVER_S_DN"

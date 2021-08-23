@@ -179,8 +179,8 @@ class UpdateServerV2 {
 
 // read config file
     const defaultConfigFile = './config.xml';
-    const userConfigFile = './user-config.xml';
-    const dvlUserConfigFile = './user-config-dvl.xml';
+    const userConfigFile = 'config/user-config.xml';
+    const dvlUserConfigFile = 'config/user-config-dvl.xml';
 
     var $xmlconfig = null;
     var $xmluserconfig = null;
@@ -298,10 +298,10 @@ class UpdateServerV2 {
 
         $debugmerge = LessSimpleXMLElement::getAttributeFromXML($this->xmluserconfig, 'debugmerge', "false") == "true";
         if ($debugmerge)
-            file_put_contents("before.xml", $this->xmlconfig->asXML());
+            file_put_contents("debug/before.xml", $this->xmlconfig->asXML());
         $this->mergeConfigs($this->xmlconfig, $this->xmluserconfig);
         if ($debugmerge)
-            file_put_contents("after.xml", $this->xmlconfig->asXML());
+            file_put_contents("debug/after.xml", $this->xmlconfig->asXML());
 
         $ids = array();
         if (isset($this->xmlconfig->phases->phase)) {
