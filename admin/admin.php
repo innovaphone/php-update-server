@@ -420,8 +420,9 @@ class InfoPage extends UpdateV2Page {
 
 }
 
-if (isset($_REQUEST['show']))
-    $_REQUEST['mode'] = 'show'; // upward compat
+// upward compat
+if (isset($_REQUEST['show'])) $_REQUEST['mode'] = 'show';
+
 if (isset($_REQUEST['mode'])) {
     switch ($_REQUEST['mode']) {
         case 'show' :
@@ -487,3 +488,7 @@ if (isset($_REQUEST['mode'])) {
     $page = new StatusPage($pi, "UpdateServerV2", "");
     $page->work();
 }
+
+// show build number
+$page = new InfoPage($pi, "UpdateServerV2", "Info");
+if (isset($page->env_field) && is_object($page->env_field) && is_readable(__DIR__.'/../build.txt')) echo '<span style="font-size: 11px; font-family: Arial; display: inline-block; margin-left: 5px; margin-top: -15px;">Build: '.file_get_contents(__DIR__.'/../build.txt').'</span>';

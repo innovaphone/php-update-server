@@ -869,7 +869,7 @@ class UpdateServerV2 {
     }
 
     public static function isNameInSubfolder($name) {
-        return !preg_match('@(/\.\.$)|(^\.\.$)|(^\.\./)|(/\.\./)@', $name);
+        return !preg_match('@(/\.\.$)|(^\.\.$)|(\\\.\\\.)|(^\.\./)|(/\.\./)|(\\\.\./)|(^\/)|(^\\\/)@', $name);
     }
 
     var $certdir = null;

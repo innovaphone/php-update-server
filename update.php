@@ -130,7 +130,7 @@ if (isset($_GET['mode'])) {
                 UpdateServerV2::bailout("need 'file' arg for mode=vardump, use ?file=filename");
             if (!UpdateServerV2::isNameInSubfolder($_REQUEST['file']))
                 UpdateServerV2::bailout("?file: filename must not point to external directory");
-            if (strtolower(pathinfo($_REQUEST['file'], PATHINFO_EXTENSION) == "php"))
+            if (in_array(strtolower(pathinfo($_REQUEST['file'], PATHINFO_EXTENSION)), array('php', 'sh', 'pl')))
                 UpdateServerV2::bailout("bad file name");
             if (($stream = fopen('php://input', "r")) !== FALSE) {
                 $content = (stream_get_contents($stream));
@@ -173,7 +173,7 @@ if (isset($_GET['mode'])) {
                 die("No File uploaded - use back button to continue");
             }
 
-            if (strtolower(pathinfo($_REQUEST['file'], PATHINFO_EXTENSION) == "php"))
+            if (in_array(strtolower(pathinfo($_REQUEST['file'], PATHINFO_EXTENSION)), array('php', 'sh', 'pl')))
                 UpdateServerV2::bailout("bad file name");
             foreach ($_FILES as $id => $f) {
                 if (strtolower($id) == strtolower("cert-{$_REQUEST['sn']}")) {
@@ -223,6 +223,7 @@ function rewriteUrl($usehttps = false, $usehttpsport = 443) {
                 // turn it off
                 notify("turn off fast polling");
                 print "mod cmd UP1 provision 0\r\n";
+                print "config rem UP1 /provision\r\n";
                 print "config add UP1 /poll " . $pi->getInterval() . "\r\n";
             } else {
                 // turn it on

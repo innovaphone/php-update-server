@@ -294,9 +294,9 @@ abstract class HTMLEmail extends HTMLDoc {
 	return "<br>
 	    <hr>
 	    <span class='innologo'>innovaphone AG</span>
-	    <p class='innoslogan'>P&nbsp;U&nbsp;R&nbsp;E&nbsp;&nbsp;&nbsp;I&nbsp;P&nbsp;-&nbsp;C&nbsp;O&nbsp;M&nbsp;M&nbsp;U&nbsp;N&nbsp;I&nbsp;C&nbsp;A&nbsp;T&nbsp;I&nbsp;O&nbsp;N&nbsp;S</p>
+        <p class='innoslogan'>communicate. connect. collaborate.</p>
 	    <p>
-	    Böblinger Straße 76 | 71065 Sindelfingen | Germany<br>
+	    Umberto-Nobile-Straße 15 | 71063 Sindelfingen | Germany<br>
             Fon: + 49 (7031) 73009 $extension | Fax: + 49 (7031) 73009 99<br>
             E-Mail: $email@innovaphone.com | www.innovaphone.com<br>
 	    <hr>

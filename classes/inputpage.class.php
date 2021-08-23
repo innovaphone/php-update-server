@@ -1320,8 +1320,8 @@ class InputPageZIPField extends InputPageStringField {
     public function InputPageZIPField($name, $prompt = "", $default = "", InputPageAction $button = null) {
         $this->__construct($name, $prompt, $default, $button);
         $this->setHint(tl::tl("A ZIP code is an optional country selector (such as 'DE-') followed by a natural number of at least 4 digits."));
-        $this->placeHolder = tl::tl("e.g.")." 71065";
-        $this->pattern = "^([a-zA-Z]{2,5}-)?[0-9A-Z ]{4,99}$";
+        $this->placeHolder = tl::tl("e.g.")." 71063";
+        $this->pattern = "^([a-zA-Z]{2,5}-)?[0-9A-Z -]{4,99}$";
     }
     
     public function valid() {
@@ -2723,6 +2723,11 @@ abstract class InputPage extends HTMLDoc {
     public final function renderFields() {
         // this shall not be overridden
         $ret = "";
+        
+        // add magic fields
+        if ($this->phase != null) $ret .= "<input type='hidden' name='_phase' value='{$this->phase}'/>";
+        if ($this->page != null) $ret .= "<input type='hidden' name='_page' value='{$this->page}'/>";
+        
         // determine fields to display
         $leftFieldsToRender = array();
         $rightFieldsToRender = array();
@@ -2748,9 +2753,6 @@ abstract class InputPage extends HTMLDoc {
         
         $ret .= $this->renderFieldSections($otherFieldsToRender, $bottomFieldsToRender, $topFieldsToRender, $rightFieldsToRender, $leftFieldsToRender);
         
-        // add magic fields
-        if ($this->phase != null) $ret .= "<input type='hidden' name='_phase' value='{$this->phase}'/>";
-        if ($this->page != null) $ret .= "<input type='hidden' name='_page' value='{$this->page}'/>";
         return $ret;
     }
     
