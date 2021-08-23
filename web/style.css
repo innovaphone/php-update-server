@@ -1,0 +1,111 @@
+body,
+th {
+    font-family: arial;
+}
+.upd-tag {
+    display: block;
+    padding-bottom: 1em;
+}
+.upd-attribs {
+    display: block;
+    padding-left: 2em;
+}
+.upd-attrib {
+    display: block;
+    padding-left: 3em;
+}
+.upd-tag-implies {
+    padding-left: 4em;
+}
+
+.upd-value-implies {
+    display: block;
+    padding-left: 6em;
+}
+.upd-value-implies:before {
+    content: "=>";
+}
+
+.upd-script {
+    display: block;
+    padding-top: 1em;
+}
+
+.upd-content pre {
+    padding-left: 2em;
+    border-bottom: activeborder
+}
+
+.upd-tag-cache {
+    padding-left: 3em;
+}
+
+.upd-tag-status table tr:hover {
+    background-color: #f5f5f5;
+}
+.upd-tag-status table tr.missing {
+    background-color: lightgoldenrodyellow;
+}
+.upd-tag-status table tr.missing:hover {
+    background-color: #f1f1f1;
+}
+.upd-tag-status table tr td,
+.upd-tag-status table tr th
+{
+    vertical-align: top;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+.upd-tag-status table tbody tr td {
+    font-family: monospace;
+}
+
+.upd-tag-status table tr * table tr:hover {
+    background-color: #a4a4a4;
+}
+.upd-tag-status table tr * table tr td {
+    border-bottom: none;
+}
+
+.upd-tag-status img {
+    vertical-align: middle;
+}
+.upd-tag-status span.msgs,
+.prompt {
+    font-size: 11px;
+    font-family: arial;
+}
+.upd-tag-status span.msgs ul {
+    list-style-type: none;
+    display: none;
+}
+
+
+
+span.msgs ul li {
+    text-indent: -5px;
+}
+span.msgs ul li:before {
+    content: "- ";
+    text-indent: -5px;
+}
+.upd-tag-status .msgs .ruler {
+    list-style-type: none;
+    text-align: right;
+}
+span.msgs ul li.ruler:before {
+    content: "";
+}
+
+ul.backuplist {
+    list-style-type: none;
+    font-size: 11px;
+    font-family: arial;
+    display: none;
+}
+
+table.scriptslist {
+    display: none;
+    font-size: 11px;
+}

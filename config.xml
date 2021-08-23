@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE config SYSTEM "config.dtd">
+
+<!--
+This file contains all the default values.
+Do NOT modify this file!   Put local settings in to user-config.xml rather
+-->
+
+<config debugmerge="false" debugcerts="false" debugscript="false">
+    
+    <master 
+        info="http://yourmasterdevice.yourdomain.tld/CMD0/box_info.xml"
+        expire="3600"
+        cache="cache/master-info.xml"
+        user="admin"
+        password="password"
+    />
+    
+    <fwstorage url="fw/{build}/"/>
+    <backup 
+        nbackups="10"
+        scfg="update.php?mode=backup&amp;hwid=#h&amp;sn=#m"
+    />
+    <status
+        missing="604800" 
+        refresh="0"
+        expire="7776000" 
+        logkeep="1800"
+        usehttpsdevlinks="true"
+    />
+    <times 
+        dir="scripts"
+        check="true"
+        polling="5"
+        interval="15"
+        grace="90"
+        forcehttps=""
+        httpsport=""
+        forcetrust=""
+        httpsurlmod="!mtls/!!i"
+    />
+    
+    <phases>
+        <!-- sequence is important! -->
+        <phase id="update" seq="200"/>
+    </phases>
+    
+    <environments>
+        <environment id='default'/>
+    </environments>
+    <classes>
+        <class id="phone">
+            <!-- all phone types -->
+            <model>ip110</model>
+            <model>ip110A</model>
+            <model>ip111</model>
+            <model>ip112</model>
+            <model>ip150</model>
+            <model>ip150A</model>
+            <model>ip152</model>
+            <model>ip153</model>
+            <model>ip154</model>
+            <model>ip200A</model>
+            <model>ip200B</model>
+            <model>ip222</model>
+            <model>ip230</model>
+            <model>ip230A</model>
+            <model>ip232</model>
+            <model>ip240</model>
+            <model>ip240A</model>
+            <model>ip241</model>
+            <model>ip242</model>
+            <model>ip72</model>
+            <model>swphone</model>
+            <model>mypbxi</model>
+            <model>mypbxa</model>
+        </class>
+        <class id="opus_phone">
+            <!-- all phones that support opus -->
+            <model>ip111</model>
+            <model>ip112</model>
+            <model>mypbxi</model>
+            <model>mypbxa</model>
+        </class>
+        <class id="pre_opus_phone">
+            <!-- all phones that do not support opus -->
+            <model>ip110</model>
+            <model>ip110A</model>
+            <model>ip150</model>
+            <model>ip150A</model>
+            <model>ip152</model>
+            <model>ip153</model>
+            <model>ip154</model>
+            <model>ip200A</model>
+            <model>ip200B</model>
+            <model>ip230</model>
+            <model>ip222</model>
+            <model>ip232</model>
+            <model>ip230A</model>
+            <model>ip240</model>
+            <model>ip240A</model>
+            <model>ip241</model>
+            <model>ip242</model>
+            <model>ip72</model>
+            <model>swphone</model>
+        </class>
+        <class id="phone_oldui">
+            <!-- all phone types with pre v12 phone ui -->
+            <model>ip110</model>
+            <model>ip110A</model>
+            <model>ip150</model>
+            <model>ip150A</model>
+            <model>ip152</model>
+            <model>ip153</model>
+            <model>ip154</model>
+            <model>ip200A</model>
+            <model>ip200B</model>
+            <model>ip230</model>
+            <model>ip230A</model>
+            <model>ip240</model>
+            <model>ip240A</model>
+            <model>ip241</model>
+            <model>ip72</model>
+        </class>
+        <class id="phone_newui">
+            <!-- all phone types with v12 and later phone ui -->
+            <model>ip111</model>
+            <model>ip112</model>
+            <model>ip222</model>
+            <model>ip232</model>
+            <model>ip242</model>
+            <model>mypbxi</model>
+            <model>mypbxa</model>
+        </class>
+        <class id="mobile">            
+            <model>mypbxi</model>
+            <model>mypbxa</model>
+        </class>
+        <class id="gw">
+            <model>ipva</model>
+            <model>ipvadect</model>
+            <model>ip0010</model>
+            <model>ip0011</model>
+            <model>ip1060</model>
+            <model>ip1130</model>
+            <model>ip1200</model>
+            <model>ip1201</model>
+            <model>ip1202</model>
+            <model>ip2000</model>
+            <model>ip22</model>
+            <model>ip24</model>
+            <model>ip28</model>
+            <model>ip29</model>
+            <model>ip3000</model>
+            <model>ip3010</model>
+            <model>ip3011</model>
+            <model>ip302</model>
+            <model>ip305</model>
+            <model>ip311</model>
+            <model>ip38</model>
+            <model>ip4001</model>
+            <model>ip411</model>
+            <model>ip6000</model>
+            <model>ip6010</model>
+            <model>ip800</model>
+            <model>ip810</model>
+            <model>ip811</model>
+        </class>
+        
+    </classes>
+    
+    <nobootdev> 
+        <model>ipva</model>
+        <model>ipvadec</model>
+        <model>swphone</model>
+        <model>mypbxa</model>
+        <model>mypbxi</model>
+    </nobootdev>
+    
+    <nofirmdev>
+        <model>swphone</model>
+        <model>mypbxi</model>
+    </nofirmdev>
+    
+    <stdargs>
+        <stdarg key="sn" value="#m"/>
+        <stdarg key="type" value="#t"/>
+        <stdarg key="hwid" value="#h"/>
+        <stdarg key="ip" value="#i"/>
+        <stdarg key="PROT"/>
+        <stdarg key="PROTdate"/>
+        <stdarg key="BOOT"/>
+        <stdarg key="BOOTdate"/>        
+        <stdarg key="BMC"/>
+        <stdarg key="BMCdate"/>
+        <stdarg key="CFG"/>
+        <stdarg key="CFGdate"/>
+        <stdarg key="SCFG"/>
+        <stdarg key="SCFGdate"/>
+        <stdarg key="CHECK"/>
+        <stdarg key="CHECKdate"/>
+        <stdarg key="CFG-BACKUP-NUM"/>
+        <stdarg key="CFG-BACKUP-NUMdate"/>
+        <stdarg key="ver"/>
+    </stdargs>
+    
+    
+    <customcerts
+        CAkeys="CAkey*"
+        CAtype="manual"
+        CAname="innovaphone Device Certification Authority,innovaphone Device Certification Authority 2"
+        CAnamesep=","
+        
+        CSRkey="2048-bit"
+        CSRsignature="SH256"
+        CSRdn-cn="{sn}"
+
+        renew="90"
+        storekey="true"
+    />
+    
+    <queries
+        scfg="update.php?mode=query&amp;sn=#m"
+    >
+        <query id="certificates" title="Certificate">
+            <!-- get info for custom certificates -->
+            <cmd>mod cmd X509 xml-info</cmd>
+            <!-- <applies>*</applies> -->
+        </query>
+        <query id="admin" title="Admin">
+            <cmd>mod cmd CMD0 xml-info</cmd>
+            <!-- <applies>*</applies> -->
+        </query>
+    </queries>
+</config>

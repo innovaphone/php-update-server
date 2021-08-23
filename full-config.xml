@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE config SYSTEM "full-config.dtd">
+
+<!--
+this is a pseudo config file that includes all tgs and all attributes at löeast one.  Used to generate .dtd file.
+DO NOT use for production!
+-->
+
+<config debugmerge="false" debugcerts="false" debugscript="false">
+    
+    <master 
+        info=""
+        expire=""
+        cache=""/>
+    
+    <fwstorage url=""/>
+    
+    <backup 
+        dir=""
+        nbackups=""
+        scfg=""
+    />
+    
+    <status
+        dir=""
+        missing="" 
+        refresh=""
+        expire="" 
+        logkeep=""
+        usehttpsdevlinks=""
+    />
+ 
+    <times 
+        dir=""
+        allow=""
+        initial=""
+        check=""
+        polling=""
+        interval=""
+        grace=""
+        forcehttps=""
+        httpsport=""
+        forcetrust=""
+        httpsurlmod=""
+    />
+    
+    <phases>
+        <phase id="" seq=""/>
+        <phase id="" seq=""/>
+    </phases>
+    
+    <environments>
+        <environment id=''>
+            <implies>default</implies>
+        </environment>
+        <environment id=''>
+            <implies>default</implies>
+        </environment>
+    </environments>
+
+    <classes>
+        <class id="">
+            <model>name</model>
+        </class>
+        <class id="">
+            <model>name</model>
+        </class>
+    </classes>
+    
+    <nobootdev>
+        <model>name1</model>
+        <model>name2</model>
+    </nobootdev>
+
+    <nofirmdev>
+        <model>name1</model>
+        <model>name2</model>
+    </nofirmdev>
+        
+    <customcerts
+        dir="certs"
+        CAkeys=""
+        CAtype=""
+        CAuser=""
+        CApassword="" 
+        CAurl=""
+        CAname=""
+        CAnamesep=""
+        CAwildcard=""
+        
+        CSRdn-c=""
+        CSRdn-cn=""
+        CSRdn-l=""
+        CSRdn-o=""
+        CSRdn-ou=""
+        CSRdn-st=""
+        CSRkey=""
+        CSRsan-dns-1=""
+        CSRsan-dns-2=""
+        CSRsan-dns-3=""
+        CSRsan-ip-1=""
+        CSRsan-ip-2=""
+        CSRsignature=""
+
+        renew=""
+        auto-sign-off=""
+        network=""
+        netmask=""
+    />
+
+    <stdargs>
+        <stdarg key="" value=""/>
+        <stdarg key="" value=""/>
+    </stdargs>
+
+    <queries
+        scfg=""
+    >
+        <query id="" title="">
+            <cmd>cmd</cmd>
+            <applies>pattern</applies>
+        </query>
+        <query id="" title="">
+            <cmd>cmd</cmd>
+            <applies>pattern</applies>
+            <show title="">command</show>
+            <show title="">command</show>
+        </query>
+    </queries>
+</config>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE config SYSTEM "full-config.dtd">
+
+<config debugmerge="false" debugcerts="true" debugscript="false">
+    <master info="http://172.16.0.10/CMD0/box_info.xmly"/>
+    <fwstorage xurl="http://webbuild.innovaphone.com/fw.php/build={build}&amp;model=#t/"/>
+    <backup
+        dir="backup"
+    />
+    <status
+        dir="status"
+        missing="200"
+        refresh="9000"
+    />
+    
+    <times 
+        xallow="22,23,0,1,2,3,4" 
+        initial="1"
+        forcehttps="false"
+        forcetrust="false"
+        httpsport="444"
+        httpsurlmod="/sample/pample/i"
+        interval="15"
+    />
+    
+    <customcerts
+        dir="certs"
+        CAkeys="CAkey*"
+        CAtype="manual"
+        CAuser="administrator"
+        CApassword="password" 
+        CAurl=""
+        xCAname="innovaphone Device Certification Authority,innovaphone Device Certification Authority 2"
+        CAname="innovaphone-INNO-DC-W2K8-Zertifizierungsserver"
+        CAnamesep=","
+        
+        CSRkey="2048-bit"
+        CSRsignature="SH256"
+        CSRdn-cn="{hwid}"
+        CSRdn-ou=""
+        CSRdn-o=""
+        CSRdn-l=""
+        CSRdn-st=""
+        CSRdn-c=""
+        CSRsan-dns-1="{name}.company.com"
+        CSRsan-dns-2="{hwid}.company.com"
+        CSRsan-dns-3="{rdns}"
+        CSRsan-ip-1="{realip}"
+        CSRsan-ip-2=""
+
+        renew="90"
+        auto-sign-off="false"
+        network="172.16.0.0"
+        netmask="255.255.0.0"
+        storekey="true"
+    />
+        
+    <environments>
+        <environment id='hq'>
+            <implies>intranet</implies>
+        </environment>
+        <environment id='intranet'/>
+        <environment id='homeoffice'/>
+    </environments>
+    <phases>
+        <!-- sequence is important! -->
+        <phase id="staging" seq="100"/>
+    </phases>
+    <queries>
+
+        <!--
+        <query id="admin">
+            <applies>*</applies>
+            <show title="Name">/state/queries/admin/info/@name</show>
+        </query>
+        <query id="media" title="Media">
+            <cmd>mod cmd MEDIA xml-info</cmd>
+            <applies>phone</applies>
+            <show title="NAT">concat(/state/queries/media/info/nat/@result, ' (', /state/queries/media/info/nat/@public-addr, ')')</show>
+            <show title="Server">concat('STUN: ', /state/queries/media/info/@stun, ' TURN: ', /state/queries/media/info/@turn, ' (', /state/queries/media/info/@turn-user, ')')</show>
+        </query>
+        -->
+        <query id="certificates">
+            <applies>*</applies>
+            <show title="Subject">/state/queries/certificates/info/servercert/certificate/@subject_cn</show>
+            <show title="Issuer">/state/queries/certificates/info/servercert/certificate/@issuer_cn</show>
+        </query>
+
+    </queries>
+</config>
