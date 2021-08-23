@@ -1070,7 +1070,7 @@ class UpdateServerV2 {
             $this->cleanupCertificateStatus($msgs, $cmds);
             $this->setSkipNext();
         } else {
-            $msgs[] = "device certificate has good issuer";
+            $msgs[] = "OK";
             // remove anything we might have for this device regarding certificates
             $certificateIsOK = true;
             if ($this->cleanupCertificateStatus($msgs, $cmds))

@@ -44,6 +44,8 @@ class doLogin extends InputPageAction {
             $page->logout->hidden = true;
         }
         $_SESSION['logged-on'] = UpdateV2Page::$isLoggedin;
+	// print "<pre> doLogin session: "; var_dump($_SESSION); print "</pre>";
+	// print "<pre> doLogin sessionId: "; var_dump(session_id()); print "</pre>";
         $class = get_class($page);
         $newpage = new $class($page->pi, $page->site);
         $newpage->render();
@@ -136,11 +138,11 @@ class UpdateV2Page extends innoInputPage {
         $this->links = array(array("rel" => "stylesheet", "type" => "text/css", "href" => "../web/style.css"));
 
 
-        $cookie = new innoCookie("updatev2loginsession");
-        $cval = $cookie->get();
-        session_id($cval);
         session_start();
-        $cookie->set(session_id(), time() + (60 * 15));
+	// print "<pre>";
+	// var_dump($_COOKIE);
+	// var_dump($_SESSION);
+	// print "</pre>";
         UpdateV2Page::$isLoggedin = isset($_SESSION['logged-on']) ? $_SESSION['logged-on'] : false;
 
         $this->pi = $pi;
