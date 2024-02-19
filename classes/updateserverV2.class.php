@@ -1,5 +1,15 @@
 <?php
 
+/*
+ * php8 deprecation:
+ * 
+ *  utf8_decode($string);
+ *  mb_convert_encoding($string, 'ISO-8859-1', 'UTF-8');
+ * 
+ *  utf8_encode($string);
+ *  mb_convert_encoding($string, 'UTF-8', 'ISO-8859-1');
+ */
+
 class LessSimpleXMLElement extends SimpleXMLElement {
 
     /**
@@ -11,7 +21,8 @@ class LessSimpleXMLElement extends SimpleXMLElement {
      */
     static function getAttributeFromXML($xml, $name, $def = null) {
         $attrs = $xml->attributes();
-        return (isset($attrs->$name)) ? utf8_decode((string) $attrs->$name) : $def;
+        // return (isset($attrs->$name)) ? utf8_decode((string) $attrs->$name) : $def;
+        return (isset($attrs->$name)) ? mb_convert_encoding((string) $attrs->$name, 'ISO-8859-1', 'UTF-8') : $def;
     }
 
     /**
@@ -46,7 +57,8 @@ class LessSimpleXMLElement extends SimpleXMLElement {
                     }
                     $this->addChildFromXml($this->$a, $y);
                 }
-            } else {
+            }
+            else {
                 $this->addChildFromXml($this, $b);
             }
         }
@@ -55,7 +67,6 @@ class LessSimpleXMLElement extends SimpleXMLElement {
             $this[(string) $name] = (string) $value;
         }
     }
-
 }
 
 class UpdateServerV2 {
@@ -114,15 +125,16 @@ class UpdateServerV2 {
             return $this->makeReturn("cannot access " . $infoUrl);
         try {
             $pxml = @new SimpleXMLElement($xml);
-        } catch (Exception $e) {
+        }
+        catch (Exception $e) {
             return $this->makeReturn("result from $infoUrl not parsable");
         }
         if (!isset($pxml->sys))
             return $this->makeReturn("no <sys> tag in PBX info");
         if (!isset($pxml->sys['version']))
             return $this->makeReturn("no version attribute in <sys> tag in PBX info");
-        $version = $pxml->sys['version'];
-        if (($prot = preg_match('/(?<label>.*)\[(?<prot>[^]]*)\].*\[(?<boot>[^]]*)\].*\[(?<hw>[^]]*)\].*/', $version, $m)) != 1)
+        $version   = $pxml->sys['version'];
+        if (($prot      = preg_match('/(?<label>.*)\[(?<prot>[^]]*)\].*\[(?<boot>[^]]*)\].*\[(?<hw>[^]]*)\].*/', $version, $m)) != 1)
             return $this->makeReturn("cannot parse box info '$version'");
         $m['prot'] = str_replace('.', '', $m['prot']);
         if ($save !== null)
@@ -130,11 +142,11 @@ class UpdateServerV2 {
         return $this->makeReturn(null, $m['label'], $m['prot'], $m['boot'], $m['hw']);
     }
 
-    var $cachefile = "cache/master-info.xml";
+    var $cachefile   = "cache/master-info.xml";
     var $cacheexpire = 3600;  // one hour
 
     function getOnlinePbxInfo() {
-        $r = ($this->getPbxInfo((string) $this->xmlconfig->master['info'], $this->cachefile));
+        $r       = ($this->getPbxInfo((string) $this->xmlconfig->master['info'], $this->cachefile));
         $r->time = date('Y-m-d H:i:s');
         return $r;
     }
@@ -143,7 +155,8 @@ class UpdateServerV2 {
         $r = ($this->getPbxInfo($this->cachefile));
         if (!isset($r->error)) {
             $r->time = date('Y-m-d H:i:s', filemtime($this->cachefile));
-        } else {
+        }
+        else {
             $r->time = 0;
         }
         return $r;
@@ -179,13 +192,13 @@ class UpdateServerV2 {
 
     // read config file
     const defaultConfigFile = './config.xml';
-    const userConfigFile = 'config/user-config.xml';
+    const userConfigFile    = 'config/user-config.xml';
     const dvlUserConfigFile = 'config/user-config-dvl.xml';
 
-    var $xmlconfig = null;
+    var $xmlconfig     = null;
     var $xmluserconfig = null;
     var $baseurl;
-    var $lastphase = null;
+    var $lastphase     = null;
     var $fakelastphase = null;
 
     private function mergeConfigs($lcfg = null, $rcfg = null, $level = 0) {
@@ -201,7 +214,8 @@ class UpdateServerV2 {
         foreach ($rcfg->attributes() as $var => $value) {
             if (isset($lcfg[$var])) {
                 $act = "overwriting(old value={$lcfg[$var]})";
-            } else {
+            }
+            else {
                 $act = "adding";
             }
             $lcfg[$var] = $value;
@@ -216,9 +230,10 @@ class UpdateServerV2 {
         foreach ($rcfg as $tag => $body) {
             $left = null;
             if (!isset($lcfg->$tag)) { // a)
-                $act = "inserting";
+                $act  = "inserting";
                 $left = $lcfg->addChild($tag);
-            } else {
+            }
+            else {
                 $ltag = $lcfg->$tag;  // this peeks at index 0 implicitly
                 if (isset($ltag['id'])) { // b
                     if (!isset($body['id']))
@@ -226,20 +241,22 @@ class UpdateServerV2 {
                     foreach ($lcfg->$tag as $lrun) {
                         if ((string) $lrun['id'] == (string) $body['id']) {
                             $left = $lrun;
-                            $act = "merge into id='{$body['id']}'";
+                            $act  = "merge into id='{$body['id']}'";
                             break;
                         }
                     }
                     if ($left === null) {
-                        $act = "adding";
+                        $act  = "adding";
                         $left = $lcfg->addChild($tag);
                     }
-                } else {
+                }
+                else {
                     if (count($lcfg->$tag) > 1 || count($rcfg->$tag) > 1) { // d
                         $left = $lcfg->addChild($tag);
-                        $act = "adding (left has multiple '$tag')";
-                    } else { // c
-                        $act = "merging (left has no or 1 '$tag')";
+                        $act  = "adding (left has multiple '$tag')";
+                    }
+                    else { // c
+                        $act  = "merging (left has no or 1 '$tag')";
                         $left = $lcfg->$tag;
                     }
                 }
@@ -286,7 +303,8 @@ class UpdateServerV2 {
 
         try {
             $this->xmlconfig = @new SimpleXMLElement(file_get_contents(self::defaultConfigFile));
-        } catch (Exception $e) {
+        }
+        catch (Exception $e) {
             self::bailout("cannot parse " . self::defaultConfigFile . ": " . $e->getMessage());
             return;
         }
@@ -295,7 +313,8 @@ class UpdateServerV2 {
             if (is_file($ucf)) {
                 try {
                     $this->xmluserconfig = @new SimpleXMLElement(file_get_contents($ucf));
-                } catch (Exception $e) {
+                }
+                catch (Exception $e) {
                     self::bailout("cannot parse " . $ucf . ": " . $e->getMessage());
                     return;
                 }
@@ -310,7 +329,7 @@ class UpdateServerV2 {
         if ($debugmerge)
             file_put_contents("debug/after.xml", $this->xmlconfig->asXML());
 
-        $ids = array();
+        $ids            = array();
         $insertPhaseSeq = null;
         if (isset($this->xmlconfig->phases->phase)) {
             $value = null;
@@ -325,9 +344,9 @@ class UpdateServerV2 {
             }
             // now $value is the last phase
             if ($value !== null) {
-                $insertPhaseSeq = (int) $value['seq'];
-                $value['seq'] = $insertPhaseSeq + 1;
-                $this->lastphase = (string) $value['id'];
+                $insertPhaseSeq      = (int) $value['seq'];
+                $value['seq']        = $insertPhaseSeq + 1;
+                $this->lastphase     = (string) $value['id'];
                 $this->fakelastphase = "_first_" . $this->lastphase;
             }
         }
@@ -371,17 +390,17 @@ class UpdateServerV2 {
             self::bailout("config: master tag or info attribute missing");
         if (!isset($this->xmlconfig->fwstorage['url']))
             self::bailout("config: fwstorage tag or url attribute missing");
-        $fwsurl = (string) $this->xmlconfig->fwstorage['url'];
-        $fwsurl = $this->makeFullUrl($fwsurl);
+        $fwsurl                            = (string) $this->xmlconfig->fwstorage['url'];
+        $fwsurl                            = $this->makeFullUrl($fwsurl);
         $this->xmlconfig->fwstorage['url'] = $fwsurl;
         if (count($this->xmlconfig->phases->phase) <= 0)
             self::bailout("config: need at least one phase");
         if (count($this->xmlconfig->environments->environment) <= 0)
             self::bailout("config: need at least one environment");
         if (isset($this->xmlconfig->master['expire']))
-            $this->cacheexpire = (int) (string) $this->xmlconfig->master['expire'];
+            $this->cacheexpire                 = (int) (string) $this->xmlconfig->master['expire'];
         if (isset($this->xmlconfig->master['cache']))
-            $this->cachefile = (string) $this->xmlconfig->master['cache'];
+            $this->cachefile                   = (string) $this->xmlconfig->master['cache'];
         if (isset($this->xmlconfig->environments->environment))
             foreach ($this->xmlconfig->environments->environment as $env) {
                 foreach ($env->implies as $imp) {
@@ -392,25 +411,27 @@ class UpdateServerV2 {
             }
         $this->statedir = null;
         if (isset($this->xmlconfig->status) && isset($this->xmlconfig->status['dir'])) {
-            $this->statedir = (string) $this->xmlconfig->status['dir'];
-            $this->stateexpire = isset($this->xmlconfig->status['expire']) ? (int) $this->xmlconfig->status['expire'] : 0;
+            $this->statedir     = (string) $this->xmlconfig->status['dir'];
+            $this->stateexpire  = isset($this->xmlconfig->status['expire']) ? (int) $this->xmlconfig->status['expire'] : 0;
             $this->statemissing = isset($this->xmlconfig->status['missing']) ? (int) $this->xmlconfig->status['missing'] : 0;
         }
         $this->certdir = null;
         if (isset($this->xmlconfig->customcerts) && isset($this->xmlconfig->customcerts['dir']) && $this->xmlconfig->customcerts['dir'] != "") {
-            $this->certdir = (string) $this->xmlconfig->customcerts['dir'];
+            $this->certdir        = (string) $this->xmlconfig->customcerts['dir'];
             $this->certRootBaseFn = $this->certdir . "/CA";
             if (isset($_REQUEST['sn'])) {
-                $this->certbasefn = $this->certdir . "/" . ($sn = $_REQUEST['sn']);
-                $this->certRequestKey = $this->certbasefn . "-request.der.key";
-                $this->certRequestPemFn = $this->certbasefn . "-request.p10.pem";
-                $this->certRequestDerFn = $this->certbasefn . "-request.p10.der";
+                $this->certbasefn          = $this->certdir . "/" . ($sn                        = $_REQUEST['sn']);
+                $this->certRequestKey      = $this->certbasefn . "-request.der.key";
+                $this->certRequestPemFn    = $this->certbasefn . "-request.p10.pem";
+                $this->certRequestDerFn    = $this->certbasefn . "-request.p10.der";
                 $this->certResponseErrorFn = $this->certbasefn . "-requesterror";
-                $this->certResponseFn = $this->certbasefn . "-signedrequest.cer";
-            } else {
+                $this->certResponseFn      = $this->certbasefn . "-signedrequest.cer";
+            }
+            else {
                 $this->certbasefn = null;
             }
-        } else {
+        }
+        else {
             unset($this->xmlconfig->customcerts);
         }
         // kill some empty vars
@@ -428,7 +449,7 @@ class UpdateServerV2 {
         // create required directories
         $dirs2create = array(
             dirname($this->cachefile) => 0700,
-            "fw" => 0755,
+            "fw"                      => 0755,
         );
         if (isset($this->xmlconfig->fwstorage) && isset($this->xmlconfig->fwstorage['url'])) {
             $dirs2create[(string) $this->xmlconfig->fwstorage['url']] = 0700;
@@ -445,15 +466,16 @@ class UpdateServerV2 {
         }
         if (isset($this->xmlconfig->times) && isset($this->xmlconfig->times['dir'])) {
             $dirs2create[(string) $this->xmlconfig->times['dir']] = 0700;
-        } else {
+        }
+        else {
             $this->xmlconfig->times['dir'] = 'scripts';
         }
-        $this->scriptdir = (string) $this->xmlconfig->times['dir'];
-        $dirs2create["web"] = 0755;
-        $dirs2create["classes"] = 0700;
-        $dirs2create["admin"] = 0700;
-        $files2check = array();
-        $files2check["config.xml"] = 0700;
+        $this->scriptdir                = (string) $this->xmlconfig->times['dir'];
+        $dirs2create["web"]             = 0755;
+        $dirs2create["classes"]         = 0700;
+        $dirs2create["admin"]           = 0700;
+        $files2check                    = array();
+        $files2check["config.xml"]      = 0700;
         $files2check["user-config.xml"] = 0700;
 
         foreach ($dirs2create as $dir => $mode) {
@@ -461,7 +483,7 @@ class UpdateServerV2 {
                 if (!is_dir($dir)) {
                     mkdir($dir);
                 }
-                chmod($dir, $mode);
+                /* debug */ false && chmod($dir, $mode);
             }
         }
         foreach ($files2check as $file => $mode) {
@@ -472,9 +494,9 @@ class UpdateServerV2 {
     }
 
     public function getPossibleScripts(&$newestfiletime, &$newestfile, $sn, $classes, $phase, $envs) {
-        $allphases = $allclasses = $allenvironments = array();
+        $allphases       = $allclasses      = $allenvironments = array();
         $this->logInit($sn, false);
-        $files = array();
+        $files           = array();
 
         $allclasses = $classes;
         if (count($this->xmlconfig->classes->class) > 1)
@@ -482,7 +504,7 @@ class UpdateServerV2 {
 
         //  is it the faked staging final phase?
         if ($phase == $this->fakelastphase)
-            $phase = $this->lastphase;
+            $phase     = $this->lastphase;
         $allphases = array($phase);
         if (count($this->xmlconfig->phases->phase) > 1)
             array_unshift($allphases, "all");
@@ -493,9 +515,9 @@ class UpdateServerV2 {
         if (count($this->xmlconfig->environments->environment) > 1)
             array_unshift($allenvironments, "all");
 
-        $now = time();
+        $now            = time();
         $newestfiletime = 0;
-        $newestfile = "unknown";
+        $newestfile     = "unknown";
         foreach ($allphases as $p) {
             $p = strtolower($p);
             foreach ($allclasses as $c) {
@@ -504,13 +526,14 @@ class UpdateServerV2 {
                     $e = strtolower($e);
                     $f = $this->scriptdir . "/$p-$c-$e.txt";
                     if (is_readable($f)) {
-                        $thistime = filemtime($f);
+                        $thistime  = filemtime($f);
                         $files[$f] = $thistime;
                         if ($thistime > $newestfiletime) {
                             $newestfiletime = $thistime;
-                            $newestfile = $f;
+                            $newestfile     = $f;
                         }
-                    } else {
+                    }
+                    else {
                         $files[$f] = "does not exist";
                     }
                 }
@@ -524,9 +547,9 @@ class UpdateServerV2 {
     }
 
     // query args carrying state
-    private $stateargs = array(
+    private $stateargs    = array(
         "polling" => null,
-        "phase" => null,
+        "phase"   => null,
             /*
               "type" => null,
               "sn" => null,
@@ -548,7 +571,7 @@ class UpdateServerV2 {
         }
         if ($this->stateargs[$key] != $value) {
             $this->stateargs[$key] = $value;
-            $this->statechanged = true;
+            $this->statechanged    = true;
             return true;
         }
         return false;
@@ -568,7 +591,7 @@ class UpdateServerV2 {
 
     public function __construct($baseurl, $dieOnBailout = true) {
         self::$dieOnBailout = $dieOnBailout;
-        $this->baseurl = $baseurl;
+        $this->baseurl      = $baseurl;
         $this->readConfig();
         foreach ($this->stateargs as $key => $value) {
             $this->stateargs[$key] = (isset($_REQUEST[$key]) ? $_REQUEST[$key] : null);
@@ -588,7 +611,8 @@ class UpdateServerV2 {
         foreach ($this->xmlconfig->phases->phase as $sp) {
             if ($sp['id'] == $phase) {
                 $found = true;
-            } else if ($found)
+            }
+            else if ($found)
                 return (string) $sp['id'];
         }
         return null;
@@ -615,17 +639,17 @@ class UpdateServerV2 {
     }
 
     public function expandEnvironment($env) {
-        $implied = array($env);
-        $envxml = $this->checkEnvironment($env, true);
+        $implied   = array($env);
+        $envxml    = $this->checkEnvironment($env, true);
         foreach ($envxml->implies as $imp)
             $implied[] = trim($imp);
         return $implied;
     }
 
     public function getClasses($type) {
-        $classes = array();
+        $classes   = array();
         $thisclass = null;
-        $type = strtolower($type);
+        $type      = strtolower($type);
         foreach ($this->xmlconfig->classes->class as $i => $sp) {
             $thisclass = (string) $sp['id'];
             foreach ($sp->model as $m) {
@@ -646,13 +670,14 @@ class UpdateServerV2 {
 
         // derive filenames from $model (which is someting like IP200)
         $fnroot = $lmodel = strtolower($model);
-        if (($i = strpos($fnroot, "-")) !== false) {
+        if (($i      = strpos($fnroot, "-")) !== false) {
             $fnroot = substr($fnroot, 0, $i);
         }
         if (substr($fnroot, 0, 2) == "ip") {
-            $fnroot = substr($fnroot, 2);
+            $fnroot   = substr($fnroot, 2);
             $fwprefix = "ip";
-        } else {
+        }
+        else {
             $fwprefix = "";
         }
         switch ($filetype) {
@@ -702,7 +727,8 @@ class UpdateServerV2 {
             if (isset($this->xmlconfig->times['allow'])) {
                 $times .= " /allow {$this->xmlconfig->times['allow']}";
             }
-        } else {
+        }
+        else {
             print "\r\n# Skip restricted times, initial staging / forcestaging\r\n";
         }
 
@@ -726,7 +752,7 @@ class UpdateServerV2 {
                 $line = trim(fgets($handle));
                 if ($line == "")
                     continue;
-                $fs .= $line;
+                $fs   .= $line;
             }
             fclose($handle);
         }
@@ -737,7 +763,8 @@ class UpdateServerV2 {
     public function getPolling() {
         if (isset($this->xmlconfig->times['polling'])) {
             return (string) $this->xmlconfig->times['polling'];
-        } else {
+        }
+        else {
             return 0;
         }
     }
@@ -777,7 +804,7 @@ class UpdateServerV2 {
         foreach ($this->statexml->queries->certificates->info->servercert->certificate as $c) {
             $cas[] = $c;
         }
-        usort($cas, "self::CertificateCompare");
+        usort($cas, self::class . "::CertificateCompare");
         return ($cas);
     }
 
@@ -796,7 +823,7 @@ class UpdateServerV2 {
      * @return string
      */
     private static function myReplace($search, $replace, $subject, &$undef) {
-        $r = str_replace($search, $replace, $subject);
+        $r     = str_replace($search, is_null($replace) ? '' : $replace, $subject);
         if ($replace === null && $r != $subject)
             $undef = false;
         return $r;
@@ -813,20 +840,21 @@ class UpdateServerV2 {
           {rdns} - dns name as retrieved by a reverse DNS lookup for the {realip}
          */
         $matched = true;
-        $src = self::myReplace('{realip}', LessSimpleXMLElement::getAttributeFromXML($this->statexml->device, 'realip'), $src, $matched);
-        $src = self::myReplace('{ip}', LessSimpleXMLElement::getAttributeFromXML($this->statexml->device, 'ip'), $src, $matched);
-        $src = self::myReplace('{proxy}', (string) $this->statexml->device['rp'] == 'true' ?
+        $src     = self::myReplace('{realip}', LessSimpleXMLElement::getAttributeFromXML($this->statexml->device, 'realip'), $src, $matched);
+        $src     = self::myReplace('{ip}', LessSimpleXMLElement::getAttributeFromXML($this->statexml->device, 'ip'), $src, $matched);
+        $src     = self::myReplace('{proxy}', (string) $this->statexml->device['rp'] == 'true' ?
                         LessSimpleXMLElement::getAttributeFromXML($this->statexml->device, 'proxy') : (string) $this->statexml->device['proxy'], $src, $matched);
-        $src = self::myReplace('{sn}', str_replace('-', '', LessSimpleXMLElement::getAttributeFromXML($this->statexml->device, 'sn')), $src, $matched);
-        $src = self::myReplace('{hwid}', LessSimpleXMLElement::getAttributeFromXML($this->statexml->device, 'hwid'), $src, $matched);
-        $name = LessSimpleXMLElement::getAttributeFromXML(
+        $src     = self::myReplace('{sn}', str_replace('-', '', LessSimpleXMLElement::getAttributeFromXML($this->statexml->device, 'sn')), $src, $matched);
+        $src     = self::myReplace('{hwid}', LessSimpleXMLElement::getAttributeFromXML($this->statexml->device, 'hwid'), $src, $matched);
+        $name    = LessSimpleXMLElement::getAttributeFromXML(
                         $this->statexml->queries->admin->info, 'name');
         if ($name == "")
-            $name = null;
-        $src = self::myReplace('{name}', self::str2dnsname($name), $src, $matched);
-        if (($dns = gethostbyaddr($this->statexml->device['realip'])) !== false) {
+            $name    = null;
+        $src     = self::myReplace('{name}', self::str2dnsname($name), $src, $matched);
+        if (!empty($this->statexml->device['realip']) && ($dns     = gethostbyaddr($this->statexml->device['realip'])) !== false) {
             $src = self::myReplace('{rdns}', $dns, $src, $matched);
-        } else {
+        }
+        else {
             $src = self::myReplace('{rdns}', null, $src, $matched);
         }
 
@@ -840,7 +868,7 @@ class UpdateServerV2 {
         while (strlen($var) > 0) {
             sscanf($var[0] . $var[1], "%x", $x);
             $bytes .= chr($x);
-            $var = substr($var, 2);
+            $var   = substr($var, 2);
         }
         return $bytes;
     }
@@ -849,16 +877,16 @@ class UpdateServerV2 {
         $out = "";
         for ($i = 0; $i < strlen($bytes); $i++) {
             $byte = ord($bytes[$i]);
-            $out .= sprintf("%02x", $byte);
+            $out  .= sprintf("%02x", $byte);
         }
         return $out;
     }
 
     static function der2pem($der) {
         $base = base64_encode($der);
-        $out = "-----BEGIN CERTIFICATE REQUEST-----\r\n";
-        $out .= chunk_split($base, 64);
-        $out .= "-----END CERTIFICATE REQUEST-----\r\n";
+        $out  = "-----BEGIN CERTIFICATE REQUEST-----\r\n";
+        $out  .= chunk_split($base, 64);
+        $out  .= "-----END CERTIFICATE REQUEST-----\r\n";
         return $out;
     }
 
@@ -872,19 +900,19 @@ class UpdateServerV2 {
         return !preg_match('@(/\.\.$)|(^\.\.$)|(\\\.\\\.)|(^\.\./)|(/\.\./)|(\\\.\./)|(^\/)|(^\\\/)@', $name);
     }
 
-    var $certdir = null;
-    var $scriptdir = null;
-    var $certbasefn = null;
-    var $certRootBaseFn = null;
-    var $certRequestDerFn = null;
+    var $certdir             = null;
+    var $scriptdir           = null;
+    var $certbasefn          = null;
+    var $certRootBaseFn      = null;
+    var $certRequestDerFn    = null;
     var $certResponseErrorFn = null;
-    var $certRequestPemFn = null;
-    var $certRequestKey = null;
-    var $certResponseFn = null;
+    var $certRequestPemFn    = null;
+    var $certRequestKey      = null;
+    var $certResponseFn      = null;
 
     private function dumpVar2File($var, $file, $proc = null, $postproc = null) {
         if ($proc !== null)
-            $proc = "&proc=$proc";
+            $proc     = "&proc=$proc";
         if ($postproc !== null)
             $postproc = "&postproc=$postproc";
         return "mod cmd UP0 scfg " .
@@ -901,15 +929,17 @@ class UpdateServerV2 {
             self::bailout("cannot read $file");
         }
         if (stripos($response, "-----BEGIN CERTIFICATE-----") !== false) {
-            $copyout = false;
-            $lines = preg_split("/(\r\n|\n|\r)/", $response);
+            $copyout  = false;
+            $lines    = preg_split("/(\r\n|\n|\r)/", $response);
             $response = null;
             foreach ($lines as $l) {
                 if (stripos($l, "-----BEGIN CERTIFICATE-----") !== false) {
                     $copyout = true;
-                } else if (stripos($l, "-----END CERTIFICATE-----") !== false) {
+                }
+                else if (stripos($l, "-----END CERTIFICATE-----") !== false) {
                     break;
-                } else if ($copyout) {
+                }
+                else if ($copyout) {
                     $response .= "$l";
                 }
             }
@@ -938,9 +968,9 @@ class UpdateServerV2 {
             @unlink($this->certRequestKey);
         }
         if (isset($this->statexml->queries->certificates->info->requests->request)) {
-            $cmds["removing CSR from device"] = "vars del X509/REQUEST ";
+            $cmds["removing CSR from device"]     = "vars del X509/REQUEST ";
             $cmds["removing CSR key from device"] = "vars del X509/REQUESTKEY ";
-            $hascmd = true;
+            $hascmd                               = true;
         }
         $this->logDeviceState("requestDownloaded", "false", "device");
         return $hascmd;
@@ -948,11 +978,11 @@ class UpdateServerV2 {
 
     public function doCertificates($type, &$msgs, &$certificateIsOK) {
         $certificateIsOK = false;
-        $cmds = array();
-        $msgs = array();
+        $cmds            = array();
+        $msgs            = array();
         if (!isset($this->xmlconfig->customcerts) ||
                 !isset($this->statexml)) {
-            $msgs[] = "either certificate handling or state tracking not enabled - not doing any certificate checking";
+            $msgs[]          = "either certificate handling or state tracking not enabled - not doing any certificate checking";
             $certificateIsOK = true;
             if ($this->cleanupCertificateStatus($msgs, $cmds))
                 return $cmds;
@@ -991,17 +1021,17 @@ class UpdateServerV2 {
         if (!isset($this->xmlconfig->customcerts['CAname'])) {
             self::bailout("certificates: customcerts/@CAname must be defined for certificate deployment");
         }
-        $CAsep = isset($this->xmlconfig->customcerts['CAnamesep']) ? (string) $this->xmlconfig->customcerts['CAnamesep'] : ",";
+        $CAsep         = isset($this->xmlconfig->customcerts['CAnamesep']) ? (string) $this->xmlconfig->customcerts['CAnamesep'] : ",";
         $casepexploded = array();
         foreach (explode($CAsep, (string) $this->xmlconfig->customcerts['CAname']) as $_k) {
             $casepexploded[] = trim($_k);
         }
-        $dcsc = $this->getCertificates();
+        $dcsc        = $this->getCertificates();
         $neednewcert = false;
         // issuer constraints
         foreach ($dcsc as $c) {
             if (!in_array($c['issuer_cn'], $casepexploded)) {
-                $msgs[] = "CN {$c['subject_cn']}: invalid issuer: {$c['issuer_cn']}: not in {$this->xmlconfig->customcerts['CAname']} ($CAsep)";
+                $msgs[]      = "CN {$c['subject_cn']}: invalid issuer: {$c['issuer_cn']}: not in {$this->xmlconfig->customcerts['CAname']} ($CAsep)";
                 $neednewcert = true;
             }
         }
@@ -1012,7 +1042,8 @@ class UpdateServerV2 {
         if (isset($this->xmlconfig->customcerts['CAname'])) {
             $renewtime = clone $now;
             $renewtime->add(new DateInterval("P{$this->xmlconfig->customcerts['renew']}D"));
-        } else {
+        }
+        else {
             $renewtime = $now;
         }
         foreach ($dcsc as $c) {
@@ -1022,13 +1053,13 @@ class UpdateServerV2 {
                 return null;
             }
             if ($now > new DateTime((string) $c['not_after'], $utc)) {
-                $msgs[] = "{$c['subject_cn']}: expired";
+                $msgs[]      = "{$c['subject_cn']}: expired";
                 $neednewcert = true;
             }
             if ($renewtime > new DateTime((string) $c['not_after'], $utc)) {
-                $msgs[] = "{$c['subject_cn']}: valid but must be renewed";
+                $msgs[]          = "{$c['subject_cn']}: valid but must be renewed";
                 $certificateIsOK = true;
-                $neednewcert = true;
+                $neednewcert     = true;
             }
         }
 
@@ -1058,26 +1089,26 @@ class UpdateServerV2 {
                 }
 
                 if (is_readable($this->certResponseFn)) {
-                    $msgs[] = "there is an uploaded signed CSR ({$this->certResponseFn})";
+                    $msgs[]                                = "there is an uploaded signed CSR ({$this->certResponseFn})";
                     // well done, upload to device
                     /* in vars, we have 
                      * X509/REQUESTRESPONSE/00000 the devices certificate
                      * X509/REQUESTRESPONSE/0000x intermediate certificates
                      * X509/REQUESTRESPONSE/0000n CA certificate
                      */
-                    $certindex = 0;
+                    $certindex                             = 0;
                     $cmds['upload new signed certificate'] = "vars create X509/REQUESTRESPONSE/" . sprintf("%05d", $certindex++) . " pb " . self::bin2var($this->getCertFromFile($this->certResponseFn));
                     if (!isset($this->xmlconfig->customcerts['CAkeys']))
-                        $cafiles = array();
+                        $cafiles                               = array();
                     else
-                        $cafiles = glob("{$this->xmlconfig->customcerts['dir']}/{$this->xmlconfig->customcerts['CAkeys']}");
+                        $cafiles                               = glob("{$this->xmlconfig->customcerts['dir']}/{$this->xmlconfig->customcerts['CAkeys']}");
                     foreach ($cafiles as $cakey) {
                         $cmds["upload CA certificate #$certindex ($cakey)"] = "vars create X509/REQUESTRESPONSE/" . sprintf("%05d", $certindex++) . " pb " . self::bin2var($this->getCertFromFile($cakey));
                     }
                     $this->setSkipNext();
                     return $cmds;
                 }
-                $msgs[] = "signing request must be processed by CA (ongoing)";
+                $msgs[]     = "signing request must be processed by CA (ongoing)";
                 $forcetrust = LessSimpleXMLElement::getAttributeFromXML($this->xmlconfig->times, "forcetrust", "false") == "true";
                 return $forcetrust ? $cmds : null;
             }
@@ -1106,19 +1137,19 @@ class UpdateServerV2 {
 
             $csropts = array(
                 // defaults
-                'key' => 'key',
+                'key'       => 'key',
                 'signature' => 'signature',
-                'dn-cn' => 'dn-cn',
-                'dn-ou' => 'dn-ou',
-                'dn-o' => 'dn-o',
-                'dn-l' => 'dn-l',
-                'dn-st' => 'dn-st',
-                'dn-c' => 'dn-c',
+                'dn-cn'     => 'dn-cn',
+                'dn-ou'     => 'dn-ou',
+                'dn-o'      => 'dn-o',
+                'dn-l'      => 'dn-l',
+                'dn-st'     => 'dn-st',
+                'dn-c'      => 'dn-c',
                 'san-dns-1' => 'san-dns',
                 'san-dns-2' => 'san-dns',
                 'san-dns-3' => 'san-dns',
-                'san-ip-1' => 'san-ip',
-                'san-ip-2' => 'san-ip',
+                'san-ip-1'  => 'san-ip',
+                'san-ip-2'  => 'san-ip',
             );
 
             switch (strtolower($type)) {
@@ -1143,8 +1174,9 @@ class UpdateServerV2 {
             $cmds["wrong certificate - need to create CSR"] = "$csr";
             $this->cleanupCertificateStatus($msgs, $cmds);
             $this->setSkipNext();
-        } else {
-            $msgs[] = "OK";
+        }
+        else {
+            $msgs[]          = "OK";
             // remove anything we might have for this device regarding certificates
             $certificateIsOK = true;
             if ($this->cleanupCertificateStatus($msgs, $cmds))
@@ -1205,22 +1237,23 @@ class UpdateServerV2 {
     public function saveBackup($hwid) {
         if (!isset($this->xmlconfig->backup) || !isset($this->xmlconfig->backup['dir']))
             self::bailout("backup: no backup tag or no 'dir'  attribute in config");
-        $dir = (string) $this->xmlconfig->backup['dir'];
+        $dir      = (string) $this->xmlconfig->backup['dir'];
         if (!isset($this->xmlconfig->backup['nbackups']))
             self::bailout("backup: no 'nbackups' attribute in backup tag in config");
         $nbackups = (int) (string) $this->xmlconfig->backup['nbackups'];
 
-        $loc = "$dir/$hwid";
-        $files = glob("$loc/$hwid.*.txt");
+        $loc         = "$dir/$hwid";
+        $files       = glob("$loc/$hwid.*.txt");
         $newestindex = 0;
         // determine next index to use
         if (count($files) == 0) {
             print("# no saved files for $hwid ($loc/$hwid.*.txt)\r\n");
             $lastsavedcontent = "";
-            $nfiles = 0;
-            $newest = null;
-            $tfiles = array();
-        } else {
+            $nfiles           = 0;
+            $newest           = null;
+            $tfiles           = array();
+        }
+        else {
             // sort by ctime
             $rfiles = array();
             foreach ($files as $fn) {
@@ -1231,8 +1264,8 @@ class UpdateServerV2 {
             foreach ($rfiles as $fn) {
                 $files[] = $fn;
             }
-            $newest = $files[($nfiles = count($files)) - 1];
-            $newestindex = preg_replace('/.*\.(\d+)\.txt/i', '${1}', $newest);
+            $newest           = $files[($nfiles           = count($files)) - 1];
+            $newestindex      = preg_replace('/.*\.(\d+)\.txt/i', '${1}', $newest);
             $newestindex++;
             // get latest backup
             if (($lastsavedcontent = @file_get_contents($newest)) === false) {
@@ -1241,7 +1274,7 @@ class UpdateServerV2 {
             $tfiles = array_flip($rfiles);
         }
         // make sure directory exists
-        $newfn = "$loc/$hwid.$newestindex.txt";
+        $newfn  = "$loc/$hwid.$newestindex.txt";
         @mkdir(dirname($newfn), 0777, true);
         // get backup content
         if (($stream = fopen('php://input', "r")) !== FALSE) {
@@ -1249,18 +1282,21 @@ class UpdateServerV2 {
                 self::bailout("backup: cannot read backup stream");
             // remove irrelevant lines (which always change and would force a storage)
             // split into array
-            $tmp = preg_split("/(\r\n|\n|\r)/", $newcontent);
+            $tmp        = preg_split("/(\r\n|\n|\r)/", $newcontent);
             // remove call list entries
-            $tmp = preg_replace('/^mod cmd FLASHDIR0 add-item .*\)\(type=.*\(info=.*$/', '', $tmp);
+            $tmp        = preg_replace('/^mod cmd FLASHDIR0 add-item .*\)\(type=.*\(info=.*$/', '', $tmp);
             // remove update vars
-            $tmp = preg_replace('/^vars create UPDATE\/.*$/', '', $tmp);
+            $tmp        = preg_replace('/^vars create UPDATE\/.*$/', '', $tmp);
             // ignore UP1 line
-            $tmp = preg_replace('/^config change UP1 \/.*$/', '', $tmp);
+            $tmp        = preg_replace('/^config change UP1 \/.*$/', '', $tmp);
+            // ignore TLS tickets
+            $tmp        = preg_replace('/^vars create TLS0\/TICKET\/.*$/', '', $tmp);
+            
             // convert back to file
-            $tmp2 = array();
+            $tmp2       = array();
             foreach ($tmp as $line)
                 if ($line != "")
-                    $tmp2[] = $line;
+                    $tmp2[]     = $line;
             $newcontent = implode("\r\n", $tmp2);
             if (@file_put_contents($newfn, $newcontent) === false)
                 self::bailout("backup: cannot save backup to file '$newfn'");
@@ -1268,23 +1304,25 @@ class UpdateServerV2 {
 
         // see if there is something new in this backup
         if ($lastsavedcontent == $newcontent) {
-            print "# no change (newest $newest) " . filemtime($newest) . "\r\n";
+            print "# no change (newest $newest) " . (empty($newest) ? "" : filemtime($newest)) . "\r\n";
             @unlink($newfn);
             return $newest === null ? 0 : filemtime($newest);
-        } else {
+        }
+        else {
             print "# saving $newfn\r\n";
         }
         // remove extra old backups
-        $tnow = time();
+        $tnow   = time();
         $minage = (isset($this->xmlconfig->backup) && isset($this->xmlconfig->backup['minage'])) ? (int) $this->xmlconfig->backup['minage'] : 0;
-        $t0 = $tnow - ($minage /* days */ * 24 /* hours */ * 60 /* minutes */ * 60 /* seconds */);
+        $t0     = $tnow - ($minage /* days */ * 24 /* hours */ * 60 /* minutes */ * 60 /* seconds */);
         while ($nfiles-- >= $nbackups) {
             $todel = array_shift($files);
             $mtime = isset($tfiles[$todel]) ? $tfiles[$todel] : $tnow;
             if ($mtime < $t0) {
                 print "# removing $todel tnow=$tnow t0=$t0 minage=$minage mtime=$mtime\r\n";
                 @unlink($todel);
-            } else {
+            }
+            else {
                 print "# not removing $todel tnow=$tnow t0=$t0 minage=$minage mtime=$mtime\r\n";
             }
         }
@@ -1312,7 +1350,8 @@ class UpdateServerV2 {
 
         try {
             $newstate = new SimpleXMLElement("<$id>$xmlcontent</$id>");
-        } catch (Exception $e) {
+        }
+        catch (Exception $e) {
             // probably invalid xml content
             self::bailout("invalid xml: " . $e->getMessage() . ": " . $xmlcontent);
         }
@@ -1365,12 +1404,12 @@ class UpdateServerV2 {
     public function showClasses() {
         $c = "";
         foreach ($this->xmlconfig->classes->class as $key => $value) {
-            $cc = "";
-            $models = array();
+            $cc       = "";
+            $models   = array();
             foreach ($value->model as $model)
                 $models[] = strtolower($model);
-            $list = implode(", ", $models);
-            $c .= $this->_showSimpleElement($key, $value, $this->_showSPAN("model", "subtag", $list));
+            $list     = implode(", ", $models);
+            $c        .= $this->_showSimpleElement($key, $value, $this->_showSPAN("model", "subtag", $list));
         }
         return $this->_showSPAN("classes", "tag", $c);
     }
@@ -1418,9 +1457,9 @@ class UpdateServerV2 {
     }
 
     static function getRemoteIp(&$rp, &$via) {
-        $rp = false;
-        $via = null;
-        $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';
+        $rp           = false;
+        $via          = null;
+        $ip           = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';
         // fix strange lighttpd ipv4 address
         $dumbIpPrefix = '::ffff:';
         if (strpos($ip, $dumbIpPrefix) === 0) {
@@ -1430,8 +1469,8 @@ class UpdateServerV2 {
             $ips = explode(",", $_SERVER["HTTP_X_FORWARDED_FOR"]);
             if (count($ips)) {
                 $via = $ip;  // save remote proxy address as $via
-                $ip = $ips[0];
-                $rp = true;
+                $ip  = $ips[0];
+                $rp  = true;
             }
         }
         return $ip;
@@ -1441,19 +1480,24 @@ class UpdateServerV2 {
         $d = time() - $t;
         if ($t == 0) {
             return "&infin;";
-        } else if ($d < 120) {
+        }
+        else if ($d < 120) {
             $return = "{$d} sec";
-        } else if ($d < (120 * 60)) {
-            $p = round($d / 60, 1);
+        }
+        else if ($d < (120 * 60)) {
+            $p      = round($d / 60, 1);
             $return = "{$p} min";
-        } else if ($d < (48 * 60 * 60)) {
-            $p = round($d / (60 * 60), 1);
+        }
+        else if ($d < (48 * 60 * 60)) {
+            $p      = round($d / (60 * 60), 1);
             $return = "{$p} hour";
-        } else if ($d < (90 * 60 * 60 * 24)) {
-            $p = round($d / (60 * 60 * 24), 1);
+        }
+        else if ($d < (90 * 60 * 60 * 24)) {
+            $p      = round($d / (60 * 60 * 24), 1);
             $return = "{$p} day";
-        } else {
-            $p = round($d / (60 * 60 * 24 * 7), 1);
+        }
+        else {
+            $p      = round($d / (60 * 60 * 24 * 7), 1);
             $return = "{$p} week";
         }
         if ((float) $return != 1)
@@ -1469,16 +1513,16 @@ class UpdateServerV2 {
     public function showCSRFiles(SimpleXMLElement $d) {
         if (!isset($d->device['sn']))
             return "";
-        $sn = (string) $d->device['sn'];
-        $csr = false;
+        $sn    = (string) $d->device['sn'];
+        $csr   = false;
         $nocsr = false;
-        $glob = glob("*/$sn*");
-        $thtml = $html = "";
+        $glob  = glob("*/$sn*");
+        $thtml = $html  = "";
         // var_dump($glob);
         foreach ($glob as $fn) {
-            $bs = basename($fn);
+            $bs    = basename($fn);
             $shown = true;
-            $href = "admin/admin.php?mode=ui&cmd=deliverfile&fn=" . urldecode($fn);
+            $href  = "admin/admin.php?mode=ui&cmd=deliverfile&fn=" . urldecode($fn);
             switch ($bs) {
                 /*
                   case "$sn.xml" :
@@ -1487,11 +1531,11 @@ class UpdateServerV2 {
                  */
                 case "$sn-request.p10.der" :
                     $thtml .= "<a href='$href' title='Download Certificate Signing Request in DER Format'>CSR</a><small>(DER)</small>";
-                    $csr = true;
+                    $csr   = true;
                     break;
                 case "$sn-request.p10.pem" :
                     $thtml .= "<a href='$href' title='Download Certificate Signing Request in PEM Format'>CSR</a><small>(PEM)</small>";
-                    $csr = true;
+                    $csr   = true;
                     break;
                 case "$sn-signedrequest.cer" :
                     $thtml .= "<a href='$href' title='Download Signed Certificate'>Certificate</a><img src='web/cer.png'>";
@@ -1512,7 +1556,8 @@ class UpdateServerV2 {
         if ($csr) {
             if ($nocsr) {
                 $thtml .= " (signed CSR waiting for device upload)";
-            } else {
+            }
+            else {
                 $thtml .= " (CSR waiting for signature)";
             }
         }
@@ -1546,10 +1591,10 @@ class UpdateServerV2 {
             foreach ($this->xmlconfig->queries->query as $query) {
                 if (empty($query['title']) || count($query->show) == 0)
                     continue;
-                $qid = (string) $query['id'];
+                $qid  = (string) $query['id'];
                 if (!isset($d->queries->$qid))
                     continue;
-                $q = $d->queries->$qid;
+                $q    = $d->queries->$qid;
                 $seen = $q['seen'];
                 $html .= "<thead><tr><th>{$query['title']} <small>(" . self::_since($seen) . ")</small></th>";
                 foreach ($query->show as $col) {
@@ -1557,7 +1602,7 @@ class UpdateServerV2 {
                 }
                 $html .= "</tr></thead>";
 
-                $dom = new DOMDocument();
+                $dom      = new DOMDocument();
                 $dom->loadXML($d->asXML());
                 $domxpath = new DOMXPath($dom);
                 $domxpath->registerNamespace("php", "http://php.net/xpath");
@@ -1566,14 +1611,16 @@ class UpdateServerV2 {
                 foreach ($d->queries as $q) {
                     $html .= "<tr><td/>";
                     foreach ($query->show as $col) {
-                        $vals = array();
+                        $vals  = array();
                         $xpath = @$domxpath->evaluate((string) $col);
                         if ($xpath === false) {
                             $vals[] = "invalid XPath expression: $col";
-                        } else {
+                        }
+                        else {
                             if (!is_object($xpath)) {
                                 $vals[] = (string) $xpath;
-                            } else {
+                            }
+                            else {
                                 foreach ($xpath as $key => $value) {
                                     $vals[] = $value->value;
                                 }
@@ -1590,29 +1637,29 @@ class UpdateServerV2 {
     }
 
     public function _showScripts(SimpleXMLElement $d, &$scriptsid = null) {
-        $html = "";
-        $html .= "<div>" .
+        $html      = "";
+        $html      .= "<div>" .
                 (isset($d->device['phase']) ? "<span class='prompt'>phase: </span><span title='current phase'>{$d->device['phase']}</span> " : "") .
                 (isset($d->device['classes']) ? "<span class='prompt'>class: </span>{$d->device['classes']}</span> " : "") .
                 (isset($d->device['environments']) ? "<span class='prompt'>environment: </span><span title='device environments'>{$d->device['environments']}</span>" : "") .
                 "</div>";
         if (!count($d->config))
             return "";
-        $hwid = (string) $d->device['hwid'];
+        $hwid      = (string) $d->device['hwid'];
         $scriptsid = "scripts-$hwid";
-        $html .= "<a "
+        $html      .= "<a "
                 . "title='Show/hide Delivered Snippets' "
                 . "onClick='javascript:toggleVisibility(\"$scriptsid\"); return false;'>"
                 . "<img src='web/hide.jpg'>"
                 . "</a> ";
-        $html .= "<tr>"
+        $html      .= "<tr>"
                 . "<th>Name</th>"
                 . "<th>Delivered</th>"
                 . "<th>Version</th>"
                 . "</tr>";
 
         foreach ($d->config as $c) {
-            $fn = (string) $c['filename'];
+            $fn   = (string) $c['filename'];
             $href = "admin/admin.php?mode=ui&cmd=deliverfile&fn=" . urlencode($fn);
             $html .= "<tr>"
                     . "<td><a href='$href'>$fn</a></td>"
@@ -1632,13 +1679,13 @@ class UpdateServerV2 {
     }
 
     private function _showUIHandles(SimpleXMLElement $d, &$devid, &$msgsid) {
-        $devid = $msgsid = "nope";
-        $now = time();
+        $devid  = $msgsid = "nope";
+        $now    = time();
         if (isset($d->device) && isset($d->device['sn'])) {
-            $devid = "device-{$d->device['sn']}";
+            $devid  = "device-{$d->device['sn']}";
             $msgsid = "msgs-{$d->device['sn']}";
         }
-        $elements = array();
+        $elements   = array();
         $elements[] = "<a "
                 . "title='Delete Status permanently' "
                 . "onClick='javascript:deleteDeviceStatus(\"{$d->device['sn']}\", \"$devid\"); return false;'>"
@@ -1672,17 +1719,17 @@ class UpdateServerV2 {
     }
 
     private function _showMsgs($d, $id) {
-        $html = "<span class='msgs'>";
-        $html .= "<ul id='$id'>";
+        $html  = "<span class='msgs'>";
+        $html  .= "<ul id='$id'>";
         $first = true;
         foreach ($d->msgs as $m) {
             if ($first)
-                $html .= "<li class='ruler'>" . self::_since($m['time']) . "<hr/>";
+                $html  .= "<li class='ruler'>" . self::_since($m['time']) . "<hr/>";
             else
             if ((string) $m['msg'] == "")
-                $html .= "<li class='ruler'>" . self::_since($m['time']) . "<hr/>";
+                $html  .= "<li class='ruler'>" . self::_since($m['time']) . "<hr/>";
             else
-                $html .= "<li>{$m['msg']}";
+                $html  .= "<li>{$m['msg']}";
             $first = false;
         }
         return $html . "</ul></span>";
@@ -1697,27 +1744,27 @@ class UpdateServerV2 {
             return "<td/>";
         $html = "<td>";
         if (isset($d->device['backup'])) {
-            $dir = (string) $this->xmlconfig->backup['dir'];
-            $hwid = $d->device['hwid'];
-            $loc = "$dir/$hwid";
+            $dir   = (string) $this->xmlconfig->backup['dir'];
+            $hwid  = $d->device['hwid'];
+            $loc   = "$dir/$hwid";
             $files = glob("$loc/$hwid.*.txt");
-            $fs = array();
+            $fs    = array();
             foreach ($files as $f) {
                 // $fs[filemtime($f)+1] = "<li><a href='$f' title='$f'>AAA" . self::_since(filemtime($f)) . "</a></li>";
                 // admin/admin.php?mode=ui&cmd=deliverfile&fn=certs/00-90-33-08-00-6e-request.p10.pem
-                $href = "admin/admin.php?mode=ui&cmd=deliverfile&fn=" . urlencode($f);
+                $href              = "admin/admin.php?mode=ui&cmd=deliverfile&fn=" . urlencode($f);
                 $fs[filemtime($f)] = "<li><a href='$href' title='$f'>" . self::_since(filemtime($f)) . "</a></li>";
             }
             krsort($fs, SORT_NUMERIC);
             if (count($fs)) {
                 $backupsid = "backup-$hwid";
-                $html .= "<a "
+                $html      .= "<a "
                         . "title='Show/hide Backup Files' "
                         . "onClick='javascript:toggleVisibility(\"$backupsid\"); return false;'>"
                         . "<img src='web/hide.jpg'>"
                         . "</a> ";
-                $html .= self::_since((int) $d->device['backup']);
-                $html .= "<ul class='backuplist' id='$backupsid'>" . implode("", $fs) . "</ul>";
+                $html      .= self::_since((int) $d->device['backup']);
+                $html      .= "<ul class='backuplist' id='$backupsid'>" . implode("", $fs) . "</ul>";
             }
         }
         return $html . "</td>";
@@ -1741,10 +1788,10 @@ class UpdateServerV2 {
     }
 
     public function _showDevice($f = null) {
-        $now = time();
-        $withQueries = $this->_countShowQueries() > 0;
+        $now              = time();
+        $withQueries      = $this->_countShowQueries() > 0;
         $withCertificates = isset($this->xmlconfig->customcerts);
-        $hint = htmlentities('You can filter by ip-address, serial number, type, name, phase, class, environment, missing, firmware and bootcode');
+        $hint             = htmlentities('You can filter by ip-address, serial number, type, name, phase, class, environment, missing, firmware and bootcode');
         /*
           . "data-match-realip='{$realip}' "
           . "data-match-ip='{$ip}' "
@@ -1772,41 +1819,44 @@ class UpdateServerV2 {
         }
         try {
             $d = @new SimpleXMLElement($f, 0, true);
-        } catch (Exception $e) {
-            $d = new SimpleXMLElement('<state><device/></state>');
+        }
+        catch (Exception $e) {
+            $d               = new SimpleXMLElement('<state><device/></state>');
             $d->device['sn'] = "$f -- cannot read state";
-            $d['seen'] = time();
+            $d['seen']       = time();
         }
         // missing device?
         if ($this->statemissing && (
                 (int) $d['seen'] < ($now - $this->statemissing)
                 )) {
             $xclass = " class='missing' ";
-        } else {
+        }
+        else {
             $xclass = "";
         }
 
         $realip = (string) $d->device['realip'];
-        $ip = (string) $d->device['ip'];
+        $ip     = (string) $d->device['ip'];
         if ($realip != $ip || (string) $d->device['rp'] == 'true') {
             $via = "(via ";
             if (!empty($d->device['proxy'])) {
                 $via .= "{$d->device['proxy']} and ";
             }
             $via .= "{$ip})";
-        } else {
+        }
+        else {
             $via = "";
         }
 
-        $backups = $this->_showBackups($d, $backupsid);
-        $handles = $this->_showUIHandles($d, $id, $msgsid);
-        $scripts = $this->_showScripts($d, $scriptsid);
+        $backups      = $this->_showBackups($d, $backupsid);
+        $handles      = $this->_showUIHandles($d, $id, $msgsid);
+        $scripts      = $this->_showScripts($d, $scriptsid);
         $errortagname = "request-error";
 
         // if (isset($d->queries->certificates->info->$errortagname)) print(htmlspecialchars ($d->queries->certificates->info->$errortagname->asXML()));
-        $scheme = isset($d->device->status) ?
+        $scheme      = isset($d->device->status) ?
                 (LessSimpleXMLElement::getAttributeFromXML($d->device->status, "usehttpsdevlinks", "true") ? "https" : "http") : "http";
-        $target = $d->device['sn'];
+        $target      = $d->device['sn'];
         $escapedName = isset($d->queries->admin->info['name']) ? htmlentities($d->queries->admin->info['name']) : "";
         return "<tr$xclass id='$id' "
                 . "data-match-realip='{$realip}' "
@@ -1847,8 +1897,8 @@ class UpdateServerV2 {
 
     public function _showDevices() {
         $ndevices = 0;
-        $html = '<table id="devices"><thead>' . $this->_showDevice() . "</thead>";
-        $html .= "<tbody id='devicestable'>";
+        $html     = '<table id="devices"><thead>' . $this->_showDevice() . "</thead>";
+        $html     .= "<tbody id='devicestable'>";
         foreach (glob("{$this->statedir}/*.xml") as $f) {
             $html .= $this->_showDevice($f);
             $ndevices++;
@@ -1863,11 +1913,11 @@ class UpdateServerV2 {
         return $this->_showSPAN("status", "tag", $this->_showDevices());
     }
 
-    var $statedir = null;
-    var $stateexpire = 0;
+    var $statedir     = null;
+    var $stateexpire  = 0;
     var $statemissing = 0;
-    var $statexml = null;
-    var $statefn = null;
+    var $statexml     = null;
+    var $statefn      = null;
     var $devicescript = null;
 
     private function logInit($sn, $create = true) {
@@ -1885,13 +1935,16 @@ class UpdateServerV2 {
             if (is_readable($this->statefn)) {
                 try {
                     $this->statexml = new SimpleXMLElement($this->statefn, 0, true);
-                } catch (Exception $e) {
-                    $this->statexml = new SimpleXMLElement("<state><device/></state>");
+                }
+                catch (Exception $e) {
+                    $this->statexml          = new SimpleXMLElement("<state><device/></state>");
                     $this->statexml['error'] = $e->getMessage() . "(" . file_get_contents($this->statefn) . ")";
                 }
-            } elseif ($create) {
+            }
+            elseif ($create) {
                 $this->statexml = new SimpleXMLElement("<state><device/></state>");
-            } else
+            }
+            else
                 return false;
             $this->statexml->device['sn'] = $sn;
         }
@@ -1926,12 +1979,14 @@ class UpdateServerV2 {
         if ($subtag !== null) {
             if ($id === null) {
                 $wr = $wr->$subtag;
-            } elseif ($id === "") {
-                $wr = $wr->addChild("$subtag");
+            }
+            elseif ($id === "") {
+                $wr         = $wr->addChild("$subtag");
                 $wr['time'] = time();
-            } else {
-                $found = null;
-                $idattr = $id[0];
+            }
+            else {
+                $found   = null;
+                $idattr  = $id[0];
                 $idvalue = $id[1];
                 foreach ($wr->$subtag as $st) {
                     if (isset($st[$idattr]) && $st[$idattr] == $idvalue) {
@@ -1940,16 +1995,18 @@ class UpdateServerV2 {
                     }
                 }
                 if ($found === null) {
-                    $wr = $wr->addChild($subtag);
+                    $wr          = $wr->addChild($subtag);
                     $wr[$idattr] = $idvalue;
-                } else {
+                }
+                else {
                     $wr = $found;
                 }
             }
         }
         if ($value !== null) {
             $wr[$attribute] = (string) $value;
-        } else {
+        }
+        else {
             unset($wr[$attribute]);
         }
     }
@@ -1964,26 +2021,28 @@ class UpdateServerV2 {
     private function fixMsgs() {
         if ($this->statexml !== null && $this->statexml->msgs !== null) {
             $veryoldtime = LessSimpleXMLElement::getAttributeFromXML($this->xmlconfig->status, "logkeep", 90 * 60);
-            $veryold = time() - ($veryoldtime);
-            $i = 0;
-            $lastruler = null;
-            $lastold = null;
+            $veryold     = time() - ($veryoldtime);
+            $i           = 0;
+            $lastruler   = null;
+            $lastold     = null;
             foreach ($this->statexml->msgs as $m) {
                 if ($m['msg'] == "") {
                     $lastruler = $i;
-                } elseif ($m['time'] < $veryold) {
+                }
+                elseif ($m['time'] < $veryold) {
                     $lastold = $i;
                 }
                 $i++;
             }
             if ($lastold === null)
-                $lastold = 0;
+                $lastold   = 0;
             if ($lastruler === null)
                 $lastruler = 0;
             for ($j = 0; $j <= $i; $j++) {
                 if ($j <= $lastold && $j < $lastruler) {
                     unset($this->statexml->msgs[$j]);
-                } else
+                }
+                else
                     break;
             }
         }
@@ -1997,9 +2056,9 @@ class UpdateServerV2 {
         if ($this->stateexpire == 0)
             return;
         // we only do this once per hour
-        $now = time();
+        $now   = time();
         $stamp = "{$this->statedir}/lastcleanup";
-        $lc = @filemtime($stamp);
+        $lc    = @filemtime($stamp);
         if ($lc === FALSE || (($now - $lc) > (60 /* minutes */ * 60 /* seconds */))) {
             // we still do have a race condition here (2 callers could do it in parallel)
             // but it does no harm
@@ -2029,19 +2088,17 @@ class UpdateServerV2 {
         unset($this->statexml['skipnext']);
         return $ret;
     }
-
 }
 
 class WSTEPClient extends SoapClient {
 
     function __construct() {
         $usedoptions = array(// forced options
-            'login' => "login",
+            'login'    => "login",
             'password' => "password",
             'location' => "http://8.8.8.8/PBX0/user.soap",
         );
         parent::__construct("wstep-wsdl/wcf.wsdl", $usedoptions);
         var_dump($this->__getFunctions());
     }
-
 }

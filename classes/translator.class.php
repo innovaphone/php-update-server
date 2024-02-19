@@ -266,7 +266,7 @@ class tl {
     public static function tlx($txt) {
         $arg = func_get_args();
         $tra = str_replace('"', '\"', self::tl($txt));
-        $result = @eval("return \"${tra}\";");
+        $result = @eval("return \"{$tra}\";");
         if ($result === false) {
             $msg = "###tl::tlx: string format error in format '$txt' (translated to $tra))###";
             print "<pre><strong>$msg</strong></pre>";

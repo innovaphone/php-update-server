@@ -20,7 +20,7 @@ class innoMenuItem {
     var $href;
     var $disabled;
     
-    public function innoMenuItem($class, $name, $href, $active, $title, $disabled) {
+    public function __construct($class, $name, $href, $active, $title, $disabled) {
         $this->href = $href;
         $this->name = $name;
         $this->title = $title;
@@ -66,9 +66,9 @@ class innoInputPage extends InputPage {
      * @param string $site user visible name for the whole site (used in title)
      * @param type $title  user visisible title for this page (used together with $site as title)
      */
-    public function __construct($site, $title = null) {
+    public function __construct($site = "", $title = null) {
         parent::__construct();
-        $this->metas[] = array("content-type" => "text/html; charset=ISO-8859-1");
+        $this->metas = array("content-type" => "text/html; charset=ISO-8859-1");
         $this->links[] = array("rel" => "stylesheet", "type" => "text/css", "href" => "/style_inno.css");
         $this->links[] = array("rel" => "stylesheet", "type" => "text/css", "href" => "/style.css");
         $this->ielinks[] = array("rel" => "stylesheet", "type" => "text/css", "href" => "/iestyle.css");
@@ -431,6 +431,7 @@ class InputPageSerialField extends InputPageStringField {
             $vendor = $match[1] . $match[2] . $match[3];
             switch ($vendor) {
                 case "009033" :
+                case "029033" : 
                 case "809033" :
                 case "00013E" :
                     $mac = $match[1] . "-" . $match[2] . "-" . $match[3] . "-" . $match[4] . "-" . $match[5] . "-" . $match[6];

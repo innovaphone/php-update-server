@@ -47,7 +47,7 @@ class AsyncEvent {
      * @param string $parameters HTTP GET parameters instead of $parameterFields (optional)
      * 
      */
-    public function AsyncEvent($type, $javascript) {
+    public function __construct($type, $javascript) {
         $this->type = $type;
         $this->javascript = $javascript;
     }
@@ -183,7 +183,7 @@ abstract class genericInputPageItem {
     var $isAction = false;
     
     // constructor
-    function genericInputPageItem($name, $value) {
+    function __construct($name, $value) {
         if ($name == "") {
             $name = "_unnamed_" . self::$serial++;
         }
@@ -230,12 +230,12 @@ abstract class genericInputPageItem {
             }
         }
         if ($this->sortType == self::sortAlphanumeric) {
-            $ret = strcmp($left, $right);
+            $ret = strcmp(isset($left) ? $left : "", isset($right) ? $right : "");
         } elseif ($this->sortType == self::sortAlphanumericCaseIndependent) {
-            $ret = strcasecmp($left, $right);
+            $ret = strcasecmp(isset($left) ? $left : "", isset($right) ? $right : "");
         } elseif ($this->sortType == self::sortNumeric) {
-            $vleft = $left + 0;
-            $vright = $right + 0;
+            $vleft = intval($left) + 0;
+            $vright = intval($right) + 0;
             if ($vleft < $vright) $ret = -1;
             elseif ($vleft > $vright) $ret = 1;
             else $ret = 0;
@@ -278,8 +278,8 @@ abstract class sendableGenericInputPageItem extends genericInputPageItem  {
     // normally, input fields ar trimmed (that is, trailing white space removed). 
     var $cutTrailingWhiteSpace = true;
     
-    function sendableGenericInputPageItem($name, $value) {
-        $this->genericInputPageItem($name, $value);
+    function __construct($name, $value) {
+        parent::__construct($name, $value);
         $this->formdata = true;
     }
     
@@ -348,8 +348,8 @@ class InputPageHorizontalRule extends genericInputPageItem {
     /**
      * @param string $decoration html-code to create the "rule" (usually left empty whch defaults to <hr>)
      */
-    public function InputPageHorizontalRule($decoration = "<hr>") {
-        $this->genericInputPageItem(null, $decoration);
+    public function __construct($decoration = "<hr>") {
+        parent::__construct(null, $decoration);
         $this->onnewline = true;
         $this->fullline = true;
         $this->sortType = genericInputPageItem::sortIgnore;
@@ -373,8 +373,8 @@ class InputPageBlank extends genericInputPageItem {
     // a blank area in the form
     // used with class InputPage to skip a field, not passed between forms
     
-    public function InputPageBlank() {
-        $this->genericInputPageItem(null, "");
+    public function __construct() {
+        parent::__construct(null, "");
         $this->sortType = genericInputPageItem::sortIgnore;
     }
     
@@ -399,8 +399,8 @@ class InputPageMessage extends sendableGenericInputPageItem {
     // hmtl tag
     var $type = "div";
     
-    public function InputPageMessage($name, $value, $type = "div") {
-        $this->sendableGenericInputPageItem($name, $value);
+    public function __construct($name, $value, $type = "div") {
+        parent::__construct($name, $value);
         $this->type = $type;
         $this->hint = "";
         $this->emptyOk = true;
@@ -436,8 +436,8 @@ class InputPageMessage extends sendableGenericInputPageItem {
 
 class InputPageIFrame extends genericInputPageItem {
     // an iframe
-    public function InputPageIFrame($name) {
-        $this->genericInputPageItem($name, "");
+    public function __construct($name) {
+        parent::__construct($name, "");
         $this->hint = "";
         $this->sortType = genericInputPageItem::sortIgnore;
     }
@@ -504,8 +504,8 @@ class InputPageText extends genericInputPageItem {
      * @param string $value
      * @param string $type 
      */
-    public function InputPageText($name, $value, $type = "div") {
-        $this->genericInputPageItem($name, $value);
+    public function __construct($name, $value, $type = "div") {
+        parent::__construct($name, $value);
         $this->type = $type;
         $this->hint = "";
         $this->sortType = genericInputPageItem::sortIgnore;
@@ -545,8 +545,8 @@ class InputPageImageText extends genericInputPageItem {
     
     var $image = "";
     
-    public function InputPageImageText($name, $value, $image = "") {
-        $this->genericInputPageItem($name, $value);
+    public function __construct($name, $value, $image = "") {
+        parent::__construct($name, $value);
         $this->image = $image;
 		$this->position = "left";  // or "right"
 		$this->altnativ = "";
@@ -614,8 +614,8 @@ abstract class InputPageField extends sendableGenericInputPageItem {
      */
     var $buttonCancelName = "";
     
-    public function InputPageField($name, $type, $prompt = "", $default = "", InputPageAction $button = null, $placeholder = "") {
-        $this->sendableGenericInputPageItem($name, $default);
+    public function __construct($name, $type, $prompt = "", $default = "", InputPageAction $button = null, $placeholder = "") {
+        parent::__construct($name, $default);
         $this->type = $type;
         $this->default = $default;
         $this->prompt = ($prompt === "") ? $name : $prompt;
@@ -895,7 +895,7 @@ class InputPageAutoCompleteStringField extends InputPageStringField {
     public function getUrl() {
         $url = $_SERVER["SCRIPT_NAME"]."?_method=getOptionsAsync&_methodfield=".urlencode($this->name);
         foreach($this->urlParameters as $param => $value) {
-            $url .= "&$param=".urlencode($value);
+            $url .= "&$param=".urlencode(isset($value) ? $value : "");
         }
         return $url;
     }
@@ -904,10 +904,13 @@ class InputPageAutoCompleteStringField extends InputPageStringField {
         $ret = "[";
         foreach($options as $index => $option) {
             if($this->useOptionIndexes) {
-                $ret .= "{\"label\":\"".str_replace("\"", "\\\"", $option)."\",\"value\":\"".str_replace("\"", "\\\"", $index)."\"},";
+                $obj = new stdClass();
+                $obj->label = $option;
+                $obj->value = $index."";
+                $ret .= json_encode($obj).",";
             }
             else {
-                $ret .= "\"".str_replace("\"", "\\\"", $option)."\",";
+                $ret .= json_encode($option).",";
             }
         }
         $ret = rtrim($ret, ",");
@@ -1044,7 +1047,7 @@ class InputPageCalendarDateField extends InputPageField {
         $required = $this->emptyOk ? "false" : "true";
         $defaultVal = "";
         if($this->value != 0) {
-            $defaultVal = ", '".date("Y-m-d", $this->value)."'";
+            $defaultVal = ", '".date("Y-m-d", intval($this->value))."'";
         }
         $asyncTdEvents = (is_object($this->rootPage) ? $this->rootPage->formatAsyncEvents($this->tdEvents) : "");
         $asyncEvents = (is_object($this->rootPage) ? $this->rootPage->formatAsyncEvents($this->events) : "");
@@ -1103,7 +1106,7 @@ class InputPageDateField extends InputPageStringField {
     public function makeDisplayString($tick = null) {
         if ($tick === null) $d = $this->value;
         else $d = $tick;
-        if ($d === 0) {
+        if ($d === 0 || $d < 0) {
             // $dd = tl::tlx( /* date format, args are 1: year, 2: month, 3: day */ '{$arg[2]}/{$arg[3]}/{$arg[1]}', "****", "**", "**");
             $dd = "";
         } elseif (is_int($d)) {
@@ -1119,7 +1122,8 @@ class InputPageDateField extends InputPageStringField {
     }
 	
     static function translateDate($d) {
-            return tl::tlx( /* date format, args are 1: year, 2: month, 3: day */ '{$arg[2]}/{$arg[3]}/{$arg[1]}', date('Y', $d), date('m', $d), date('d', $d));
+        if(is_string($d)) $d = intval($d);
+        return tl::tlx( /* date format, args are 1: year, 2: month, 3: day */ '{$arg[2]}/{$arg[3]}/{$arg[1]}', date('Y', $d), date('m', $d), date('d', $d));
     }
     
     public function render_value() {
@@ -1244,14 +1248,22 @@ class InputPageIPNetMask extends InputPageIPField {
 
 // digit string (no sign)
 class InputPageDigitstringField extends InputPageStringField {
-    public function __construct($name, $prompt = "", $default = "", InputPageAction $button = null) {
+    public function __construct($name, $prompt = "", $default = "", InputPageAction $button = null, $fractionDigits = null, $justPositive = true) {
         parent::__construct($name, $prompt, $default, $button);
         $this->setHint(tl::tl("A digit string consists of one or more digits."));
         $this->sortType = genericInputPageItem::sortNumeric;
         $this->type = "number";
-        $this->attributes["min"] = 0;
+        if($justPositive) {
+            $this->attributes["min"] = 0;
+        }
         $this->placeHolder = tl::tl("e.g.")." 12345";
-        $this->pattern = "^[0-9]+$";
+        if($fractionDigits === null) {
+            $this->pattern = "^".($justPositive ? "" : "[-]{0,1}")."[0-9]+$";
+        }
+        else {
+            $this->attributes["step"] = "any";
+            $this->pattern = "^".($justPositive ? "" : "[-]{0,1}")."(\d+(?:[\.\,]\d{1,$fractionDigits})?)$";
+        }
     }
     
     public function valid() {
@@ -1295,7 +1307,7 @@ class InputPageCurrencyField extends InputPageStringField {
         $this->setHint(tl::tl("A currency value consists of an optional sign followed by one or more digits, a comma (',') and 2 digits."));
         $this->sortType = genericInputPageItem::sortNumeric;
         $this->placeHolder = tl::tl("e.g.")." 12345,67";
-        $this->pattern = "^[-0-9+]*(,[0-9][0-9])?$";
+        $this->pattern = "^[-0-9+]*([,]+[0-9]{0,2})?$";
     }
     
     public function valid() {
@@ -1310,15 +1322,17 @@ class InputPageCurrencyField extends InputPageStringField {
     
     public function render_value() {
         // var_dump($this); die();
-        return html::hq(sprintf("%.2f", $this->value)) . " {$this->currency}";
+        $ret = str_replace(".", ",", html::hq(sprintf("%.2f", $this->value)));
+        if(!empty($this->currency)) $ret .= " {$this->currency}";
+        return $ret;
     }
     
 }
 
 // ZIP (germans read PLZ) field
 class InputPageZIPField extends InputPageStringField {
-    public function InputPageZIPField($name, $prompt = "", $default = "", InputPageAction $button = null) {
-        $this->__construct($name, $prompt, $default, $button);
+    public function __construct($name, $prompt = "", $default = "", InputPageAction $button = null) {
+        parent::__construct($name, $prompt, $default, $button);
         $this->setHint(tl::tl("A ZIP code is an optional country selector (such as 'DE-') followed by a natural number of at least 4 digits."));
         $this->placeHolder = tl::tl("e.g.")." 71063";
         $this->pattern = "^([a-zA-Z]{2,5}-)?[0-9A-Z -]{4,99}$";
@@ -1336,8 +1350,8 @@ class InputPageZIPField extends InputPageStringField {
 }
 
 class InputPageAsyncField extends genericInputPageItem {
-    function InputPageAsyncField($name) {
-        parent::genericInputPageItem($name, "");
+    function __construct($name) {
+        parent::__construct($name, "");
     }
     
     function render($columns) {
@@ -1473,8 +1487,8 @@ class InputPageTextareaField extends InputPageField {
     
     // choices is either an array of choices names or null
     // a choice in turn is an indexed (by choice id) array of prompts (e.g. array('id' => 'bla'))
-    public function __construct($name, $prompt) {
-        parent::__construct($name, "textarea", $prompt);
+    public function __construct($name, $prompt, $default = "") {
+        parent::__construct($name, "textarea", $prompt, $default);
         $this->attributes = array("cols" => "40", "rows" => "4");
         $this->sortType = genericInputPageItem::sortIgnore;
     }
@@ -1515,6 +1529,7 @@ class InputPageCheckboxField extends InputPageField {
     var $radioFirst = false; // should the radio button be printed before the prompt?
     var $choices;
     var $htmlFiller; // gives the chance to make a newline or some space between each choice
+    var $prependListColumn; // if set to a string, the value from the parent list is prepended as tooltip hint
 
     /**
      * choices is either an array of choices names or null. 
@@ -1528,10 +1543,13 @@ class InputPageCheckboxField extends InputPageField {
      * @param string $htmlFiller 
      */
 
-    public function __construct($name, $prompt, $choices = array("on" => ""), $htmlFiller = "") {
+    public function __construct($name, $prompt, $choices = array("on" => ""), $htmlFiller = "", $prependListColumn = null) {
         parent::__construct($name, "checkbox", $prompt);
         $this->isarray = true;
         $this->type = "checkbox";
+        if(!is_array($this->value)) {
+            $this->value = array();
+        }
         foreach ($choices as $id => $prompt) {
             $this->value[$id] = false;
         }
@@ -1541,6 +1559,7 @@ class InputPageCheckboxField extends InputPageField {
         $this->hint = tl::tl("Check if you agree.");
         $this->sortType = genericInputPageItem::sortIgnore;
         $this->emptyOk = true;
+        $this->prependListColumn = $prependListColumn;
     }
     
     // render just the field, no decoration 
@@ -1551,7 +1570,11 @@ class InputPageCheckboxField extends InputPageField {
         $asyncTdEvents = (is_object($this->rootPage) ? $this->rootPage->formatAsyncEvents($this->tdEvents) : "");
         $asyncEvents = (is_object($this->rootPage) ? $this->rootPage->formatAsyncEvents($this->events) : "");
         $ret = "";
-        $ret .= "<td class='input' title='" . html::hq($this->getHint()) . "' ".html::formatAttributes($this->tdattributes)." $asyncTdEvents>";
+        $hint = $this->getHint();
+        if($this->prependListColumn) {
+            $hint = $this->parentField->value[$this->lineNumber][$this->prependListColumn].": ".$this->hint;
+        }
+        $ret .= "<td class='input' title='" . html::hq($hint) . "' ".html::formatAttributes($this->tdattributes)." $asyncTdEvents>";
 		$count = 0;
         foreach ($this->choices as $id => $prompt) {
             if(!$this->radioFirst) {
@@ -1679,6 +1702,7 @@ class InputPageDropdownField extends InputPageField {
     public function __construct($name, $prompt, $options, $multiple = false) {
         parent::__construct($name, "", $prompt);
         $this->value = array();
+        $this->default = array();
         foreach ($options as $id => $prompt) {
             $this->value[$id] = false;
         }
@@ -1846,7 +1870,7 @@ class InputPageCountryDropdownField extends InputPageDropdownField {
                 "Croatia" => tl::tl("Croatia"),
                 "Cuba" => tl::tl("Cuba"),
                 "Cyprus" => tl::tl("Cyprus"),
-                "Czechia" => tl::tl("Czech Republic"),
+                "Czechia" => tl::tl("Czechia"),
                 "Denmark" => tl::tl("Denmark"),
                 "Djibouti" => tl::tl("Djibouti"),
                 "Dominica" => tl::tl("Dominica"),
@@ -2019,7 +2043,7 @@ class InputPageCountryDropdownField extends InputPageDropdownField {
                 "Turks and Caicos Islands" => tl::tl("Turks and Caicos Islands"),
                 "Tuvalu" => tl::tl("Tuvalu"),
                 "Uganda" => tl::tl("Uganda"),
-                "UK" => tl::tl("UK"),
+                "United Kingdom" => tl::tl("United Kingdom"),
                 "Ukraine" => tl::tl("Ukraine"),
                 "United Arab Emirates" => tl::tl("United Arab Emirates"),
                 "United States" => tl::tl("United States"),
@@ -2313,6 +2337,8 @@ abstract class InputPage extends HTMLDoc {
     var $magicFieldsDone = false;
     var $gotFields = false;
     
+    var $lineNumber; 
+    
     // instance pseudo fields
     var $phase = null;
     var $page = null;
@@ -2445,7 +2471,7 @@ abstract class InputPage extends HTMLDoc {
         return isset($this->fields[$id]) ? $this->fields[$id] : null;
     }
     
-    public function InputPage() {
+    public function __construct() {
         parent::__construct();
         $this->phase = $this->phase();
         $this->page = $this->page();
@@ -3274,7 +3300,7 @@ class InputPageListField extends sendableGenericInputPageItem {
     var $removableRows = false;
     
     // constructor
-    public function InputPageListField($name, $rows = array(), $removableRows = false) {
+    public function __construct($name, $rows = array(), $removableRows = false) {
         parent::__construct($name, null);
         $this->default = $rows;
         $this->columns = new _InputPageListRow();

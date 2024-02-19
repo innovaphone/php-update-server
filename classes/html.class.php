@@ -9,7 +9,7 @@ class html {
         /*if (is_array($v) || is_object($v)) {  // slows down code...
             $i = $i;
         }*/
-        return htmlentities($v, ENT_QUOTES, self::$encoding); 
+        return htmlentities(($v === null || is_array($v)) ? "" : $v, ENT_QUOTES, self::$encoding); 
     }
 
     // return the full URL of the calling script (or $myname if given) (not the calling file!)
@@ -291,19 +291,24 @@ abstract class HTMLEmail extends HTMLDoc {
     }
 
     final public function legalFooter($email = "info", $extension = "0") {
-	return "<br>
+        $text = "<br>
 	    <hr>
 	    <span class='innologo'>innovaphone AG</span>
-        <p class='innoslogan'>communicate. connect. collaborate.</p>
+        <p class='innoslogan'>more than communication</p>
 	    <p>
 	    Umberto-Nobile-Straße 15 | 71063 Sindelfingen | Germany<br>
             Fon: + 49 (7031) 73009 $extension | Fax: + 49 (7031) 73009 99<br>
             E-Mail: $email@innovaphone.com | www.innovaphone.com<br>
 	    <hr>
 	    <p class='innofineprint'>
-	    [Sitz der Gesellschaft: Sindelfingen | HBR Nr. 5196 Amtsgericht Böblingen | Vorsitzender des Aufsichtsrates: Gebhard Michel | Vorstand: Dagmar Geer (Vorsitzende), Carsten Bode, Guntram Diehl, Gerd Hornig]
+	    [Sitz der Gesellschaft: Sindelfingen | HBR Nr. 5196 Amtsgericht Böblingen | Vorsitzender des Aufsichtsrates: Dr. Klaus Reuber | Vorstand: Dagmar Geer (Vorsitzende), Carsten Bode, Guntram Diehl, Gerd Hornig]
 	    <p/>
 	    ";
+        // this PHP file is encoded in Latin1, so convert the text to UTF-8 if html::$encoding is UTF-8
+        if(strtolower(html::$encoding == "utf-8")) {
+            $text = iconv("ISO-8859-1", "UTF-8", $text);
+        }
+        return $text;
     }
 
     // must return the subject

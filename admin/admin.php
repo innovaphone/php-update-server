@@ -54,6 +54,9 @@ class doLogin extends InputPageAction {
 }
 
 class doSwitch2Page extends InputPageAction {
+    
+    var $anyway;
+    var $class;
 
     function __construct($class, $name, $value, $prompt = null) {
         parent::__construct($name, $value, $prompt);
@@ -118,10 +121,13 @@ class UpdateV2Page extends innoInputPage {
      * @var doLogin 
      */
     var $login = null;
+    var $logout = null;
     var $navigationButtons = array();
 
     function __construct(UpdateServerV2 $pi, $site, $title = null) {
         parent::__construct($site, $title);
+        
+        $this->pw = $this->login = $this->logout = new stdClass();
         self::$method = "post";
         InputPage::$method = "post";
         $this->logoImg = "/web/innovaphone_logo_claim_fisch.png";
@@ -298,7 +304,8 @@ class LoginPage extends PlainTextPage {
         parent::__construct($pi, $site, $title);
         $_SESSION['logged-on'] = false;
         UpdateV2Page::$isLoggedin = false;
-        $page->logout->hidden = true;
+        // ?? $page is a local var and not set - how could that ever been correct?? - ckl --
+        // $page->logout->hidden = true;
         $newpage = new UpdateV2Page($pi, $site, $title);
         $newpage->render();
         exit;
@@ -324,6 +331,13 @@ class InfoPage extends UpdateV2Page {
      * @var InputPageDropdownField 
      */
     var $env_field;
+    
+    var $devname_field;
+    var $compute_field;
+    var $url_field;
+    var $urlwi_field;
+    var $urlwa_field;
+    var $url3a_field;
 
     function __construct(UpdateServerV2 $pi, $site, $title) {
         parent::__construct($pi, $site, $title);

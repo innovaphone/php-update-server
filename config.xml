@@ -68,6 +68,7 @@ Do NOT modify this file!   Put local settings in to user-config.xml rather
             <model>ip200A</model>
             <model>ip200B</model>
             <model>ip222</model>
+            <model>ip222A</model>
             <model>ip230</model>
             <model>ip230A</model>
             <model>ip232</model>
@@ -102,6 +103,7 @@ Do NOT modify this file!   Put local settings in to user-config.xml rather
             <model>ip200B</model>
             <model>ip230</model>
             <model>ip222</model>
+            <model>ip222A</model>
             <model>ip232</model>
             <model>ip230A</model>
             <model>ip240</model>
@@ -150,6 +152,7 @@ Do NOT modify this file!   Put local settings in to user-config.xml rather
             <model>ipvadect</model>
             <model>ip0010</model>
             <model>ip0011</model>
+            <model>ip0013</model>
             <model>ip1060</model>
             <model>ip1130</model>
             <model>ip1200</model>
@@ -172,6 +175,7 @@ Do NOT modify this file!   Put local settings in to user-config.xml rather
             <model>ip6000</model>
             <model>ip6010</model>
             <model>ip6012</model>
+            <model>ip6013</model>
             <model>ip800</model>
             <model>ip810</model>
             <model>ip811</model>
@@ -211,12 +215,14 @@ Do NOT modify this file!   Put local settings in to user-config.xml rather
             <model>ip6000</model>
             <model>ip6010</model>
             <model>ip6012</model>
+            <model>ip6013</model>
         </class>
         <class id="pbx">
             <model>ipva</model>
             <model>ipvadect</model>
             <model>ip0010</model>
             <model>ip0011</model>
+            <model>ip0013</model>
             <model>ip2000</model>
             <model>ip3000</model>
             <model>ip3010</model>
@@ -228,6 +234,7 @@ Do NOT modify this file!   Put local settings in to user-config.xml rather
             <model>ip6000</model>
             <model>ip6010</model>
             <model>ip6012</model>
+            <model>ip6013</model>
             <model>ip800</model>
             <model>ip810</model>
             <model>ip811</model>
