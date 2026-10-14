@@ -297,7 +297,7 @@ class UpdateServerV2 {
     private function readConfig() {
         // check config file
         if (!is_file('config/user-config.xml')) {
-            self::bailout('Error: user-config.xml is missing. Please check the <a href="http://wiki.innovaphone.com/index.php?title=Howto:PHP_based_Update_Server_V2#Installation" target="_blank">documentation</a> for further details.');
+            self::bailout('Error: user-config.xml is missing. Please check the <a href="https://wiki.innovaphone.com/index.php?title=Howto:PHP_based_Update_Server_V2#Installation" target="_blank">documentation</a> for further details.');
             return false;
         }
 

@@ -477,7 +477,7 @@ class InputPageURLField extends InputPageStringField {
     public function __construct($name, $prompt = "", $default = "", InputPageAction $button = null) {
         parent::__construct($name, $prompt, $default, $button);
         $this->type = "url";
-        $this->placeHolder = tl::tl("e.g.").' http://www.innovaphone.com';
+        $this->placeHolder = tl::tl("e.g.").' https://www.innovaphone.com';
     }
 }
 

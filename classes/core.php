@@ -16,7 +16,7 @@
 	echo '    <td width="100%">';
 	echo '      <table width="100%" border="0" cellspacing="0">';
 	echo ' 	    <tr><td colspan="3" background="/images/gradient_down.jpg" height="11">&nbsp;</td></tr>';
-	echo ' 	    <tr><td valign="bottom" width="110">&nbsp;</td><td align="center"><a href="http://www.innovaphone.com"><img src="/images/web_logo.jpg" border=0></a></td><td width="150" valign="top" align="center">&nbsp;</td></tr>';
+	echo ' 	    <tr><td valign="bottom" width="110">&nbsp;</td><td align="center"><a href="https://www.innovaphone.com"><img src="/images/web_logo.jpg" border=0></a></td><td width="150" valign="top" align="center">&nbsp;</td></tr>';
 
 	echo ' 	    <tr><td colspan="3" background="/images/gradient_up.jpg" height="11">&nbsp;</td></tr>';
 	echo '      </table>';
@@ -45,10 +45,10 @@
 	echo '  </tr>	';
 	echo '</table> ';
 	echo '<p class="small" align="center">';
-	echo '  <a href="http://www.innovaphone.com/index.php?id=25&L=0">Imprint</a> |';
-	echo '  <a href="http://www.innovaphone.com/index.php?id=26&L=0">Terms of Use</a> |';
-	echo '  <a href="http://www.innovaphone.com/index.php?id=27&L=0">Terms of Trade</a> |';
-	echo '  <a href="http://www.innovaphone.com/index.php?id=28&L=0">Privacy</a><br>';
+	echo '  <a href="https://www.innovaphone.com/en/imprint.html">Imprint</a> |';
+	echo '  <a href="https://www.innovaphone.com/en/policy.html">Terms of Use</a> |';
+	echo '  <a href="https://www.innovaphone.com/en/general-terms-and-conditions.html">Terms of Trade</a> |';
+	echo '  <a href="https://www.innovaphone.com/en/privacy.html">Privacy</a><br>';
 	echo '  &copy;&nbsp;1997-2007 innovaphone AG ';
 	echo '</p>';
     }
@@ -59,7 +59,7 @@
 	if ( $_SERVER['SERVER_NAME'] != "www.innovaphone.com" ) {
 	    print '<a title="go to ' . $_SERVER['SERVER_NAME'] . '"  href="/">home&rarr; </a><br>';
 	}
-	print '<a title="go to www.innovaphone.com "  href="http://www.innovaphone.com">innovaphone&rarr; </a> ';
+	print '<a title="go to www.innovaphone.com "  href="https://www.innovaphone.com">innovaphone&rarr; </a> ';
 	print '</div>';
     }
 

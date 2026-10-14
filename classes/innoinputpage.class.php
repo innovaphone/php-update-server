@@ -228,46 +228,46 @@ class innoInputPage extends InputPage {
                 $links = array();
         switch(tl::currentLanguage()) { 
             case "de": 
-                $links["contact"] = "http://www.innovaphone.com/de/kontakt.html";
-                $links["imprint"] = "http://www.innovaphone.com/de/impressum.html";
-                $links["use"] = "http://www.innovaphone.com/de/nutzungsbedingungen.html";
-                $links["trade"] = "http://www.innovaphone.com/de/agbs.html";
-                $links["privacy"] = "http://www.innovaphone.com/de/datenschutz.html";
+                $links["contact"] = "https://www.innovaphone.com/de/kontakt.html";
+                $links["imprint"] = "https://www.innovaphone.com/de/impressum.html";
+                $links["use"] = "https://www.innovaphone.com/de/nutzungsbedingungen.html";
+                $links["trade"] = "https://www.innovaphone.com/de/agbs.html";
+                $links["privacy"] = "https://www.innovaphone.com/de/datenschutz.html";
                 break;
             case "it": 
-                $links["contact"] = "http://www.innovaphone.com/it/contatti.html";
-                $links["imprint"] = "http://www.innovaphone.com/it/imprint.html";
-                $links["use"] = "http://www.innovaphone.com/it/condizioni-di-Utilizzo.html";
-                $links["trade"] = "http://www.innovaphone.com/it/termini-e-condizioni.html";
-                $links["privacy"] = "http://www.innovaphone.com/it/privacy-policy.html";
+                $links["contact"] = "https://www.innovaphone.com/it/contatti.html";
+                $links["imprint"] = "https://www.innovaphone.com/it/imprint.html";
+                $links["use"] = "https://www.innovaphone.com/it/condizioni-di-Utilizzo.html";
+                $links["trade"] = "https://www.innovaphone.com/it/termini-e-condizioni.html";
+                $links["privacy"] = "https://www.innovaphone.com/it/privacy-policy.html";
                 break;
             case "nl": 
-                $links["contact"] = "http://www.innovaphone.com/nl/contact.html";
-                $links["imprint"] = "http://www.innovaphone.com/nl/colofon.html";
-                $links["use"] = "http://www.innovaphone.com/nl/gebruiksvoorwaarden.html";
-                $links["trade"] = "http://www.innovaphone.com/nl/algemene-handelsvoorwaarden.html";
-                $links["privacy"] = "http://www.innovaphone.com/nl/privacy.html";
+                $links["contact"] = "https://www.innovaphone.com/nl/contact.html";
+                $links["imprint"] = "https://www.innovaphone.com/nl/colofon.html";
+                $links["use"] = "https://www.innovaphone.com/nl/gebruiksvoorwaarden.html";
+                $links["trade"] = "https://www.innovaphone.com/nl/algemene-handelsvoorwaarden.html";
+                $links["privacy"] = "https://www.innovaphone.com/nl/privacy.html";
                 break;
             case "fr": 
-                $links["contact"] = "http://www.innovaphone.com/fr/contact.html";
-                $links["imprint"] = "http://www.innovaphone.com/fr/mentions-legales.html";
-                $links["use"] = "http://www.innovaphone.com/fr/conditions-d-utilisation.html";
-                $links["trade"] = "http://www.innovaphone.com/fr/cgv.html";
-                $links["privacy"] = "http://www.innovaphone.com/fr/protection-des-donn%C3%A9es.html";
+                $links["contact"] = "https://www.innovaphone.com/fr/contact.html";
+                $links["imprint"] = "https://www.innovaphone.com/fr/mentions-legales.html";
+                $links["use"] = "https://www.innovaphone.com/fr/conditions-d-utilisation.html";
+                $links["trade"] = "https://www.innovaphone.com/fr/cgv.html";
+                $links["privacy"] = "https://www.innovaphone.com/fr/protection-des-donnees.html";
                 break;
             case "es": 
-                $links["contact"] = "http://www.innovaphone.com/es/contacto.html";
-                $links["imprint"] = "http://www.innovaphone.com/es/impressum.html";
-                $links["use"] = "http://www.innovaphone.com/es/politica-uso.html";
-                $links["trade"] = "http://www.innovaphone.com/es/condiciones-generales-venta.html";
-                $links["privacy"] = "http://www.innovaphone.com/es/proteccion-datos.html";
+                $links["contact"] = "https://www.innovaphone.com/es/contacto.html";
+                $links["imprint"] = "https://www.innovaphone.com/es/impressum.html";
+                $links["use"] = "https://www.innovaphone.com/es/politica-uso.html";
+                $links["trade"] = "https://www.innovaphone.com/es/condiciones-generales-venta.html";
+                $links["privacy"] = "https://www.innovaphone.com/es/proteccion-datos.html";
                 break;
 			default:
-                $links["contact"] = "http://www.innovaphone.com/en/contact.html";
-                $links["imprint"] = "http://www.innovaphone.com/en/imprint.html";
-                $links["use"] = "http://www.innovaphone.com/en/policy.html";
-                $links["trade"] = "http://www.innovaphone.com/en/terms-of-trade.html";
-                $links["privacy"] = "http://www.innovaphone.com/en/privacy.html";
+                $links["contact"] = "https://www.innovaphone.com/en/contact.html";
+                $links["imprint"] = "https://www.innovaphone.com/en/imprint.html";
+                $links["use"] = "https://www.innovaphone.com/en/policy.html";
+                $links["trade"] = "https://www.innovaphone.com/en/terms-of-trade.html";
+                $links["privacy"] = "https://www.innovaphone.com/en/privacy.html";
                 break;
         }
         return $links;
@@ -309,7 +309,7 @@ class innoInputPage extends InputPage {
 			if ( $_SERVER['SERVER_NAME'] != "www.innovaphone.com" ) {
 				$ret .= '     <a class="novisit" title="' . tl::tl("Go to") . ' ' . $_SERVER['SERVER_NAME'] . '"  href="/">' . tl::tl("Home") . '&rarr; </a><br>';
 			}
-			$ret .= '         <a class="novisit" title="' . tl::tl("Go to www.innovaphone.com") . ' "  href="http://www.innovaphone.com">innovaphone&rarr; </a> ';
+			$ret .= '         <a class="novisit" title="' . tl::tl("Go to www.innovaphone.com") . ' "  href="https://www.innovaphone.com">innovaphone&rarr; </a> ';
 			$ret .= '       </div>';
 			$ret .= '	  </td>';
 			$ret .= '    </tr>';
